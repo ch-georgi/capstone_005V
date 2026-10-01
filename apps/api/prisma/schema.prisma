@@ -1,0 +1,263 @@
+// apps/api/prisma/schema.prisma
+//
+// Modelo de datos de WellQ Medical Records (PostgreSQL / Prisma).
+// Construido 1:1 sobre el modelo documentado en:
+//   "Propuesta redefinicion proyecto.md", secciones 14 y 15.
+//
+// Entidades: clinics, users, user_clinics, patients, patient_clinics,
+// exam_types, exams, exam_versions, audit_logs, refresh_tokens.
+//
+// Setup:
+//   cd apps/api
+//   npm install prisma @prisma/client
+//   npx prisma init
+//   (pegar este archivo en prisma/schema.prisma)
+//   npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================================
+// Enums
+// =====================================================================
+
+enum UserRole {
+  SYSTEM_ADMIN // System Administrator
+  CLINIC_ADMIN // Clinic Administrator
+  CLINICIAN // Clinician
+  PATIENT // Patient
+
+  @@map("user_role")
+}
+
+enum AuditAction {
+  CREATE
+  VIEW
+  DOWNLOAD
+  NEW_VERSION
+  UPDATE
+  DELETE
+
+  @@map("audit_action")
+}
+
+// =====================================================================
+// Clinics (tenants)
+// =====================================================================
+model Clinic {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userClinics    UserClinic[]
+  patientClinics PatientClinic[]
+  exams          Exam[]
+  auditLogs      AuditLog[]
+
+  @@map("clinics")
+}
+
+// =====================================================================
+// Users (personal interno: admins, clínicos). Un usuario puede
+// pertenecer a más de una clínica -> tabla puente user_clinics.
+// =====================================================================
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  role         UserRole
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  userClinics    UserClinic[]
+  createdExams   Exam[]        @relation("ExamCreatedBy")
+  deletedExams   Exam[]        @relation("ExamDeletedBy")
+  uploadedVersions ExamVersion[] @relation("VersionUploadedBy")
+  auditLogs      AuditLog[]    @relation("AuditActor")
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+// Tabla puente User <-> Clinic (N:N)
+model UserClinic {
+  userId   String @map("user_id")
+  clinicId String @map("clinic_id")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@id([userId, clinicId])
+  @@map("user_clinics")
+}
+
+// =====================================================================
+// Patients. Igual que User, un paciente puede estar asociado a más
+// de una clínica -> tabla puente patient_clinics.
+// =====================================================================
+model Patient {
+  id          String    @id @default(uuid())
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  dateOfBirth DateTime  @map("date_of_birth") @db.Date
+  email       String?
+  phone       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  patientClinics PatientClinic[]
+  exams          Exam[]
+  auditLogs      AuditLog[]
+
+  @@map("patients")
+}
+
+// Tabla puente Patient <-> Clinic (N:N), con datos propios de
+// la relación (ficha clínica por clínica).
+model PatientClinic {
+  patientId            String  @map("patient_id")
+  clinicId             String  @map("clinic_id")
+  medicalRecordNumber  String? @map("medical_record_number")
+  isActive             Boolean @default(true) @map("is_active")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  clinic  Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@id([patientId, clinicId])
+  @@map("patient_clinics")
+}
+
+// =====================================================================
+// Catálogo de tipos de examen (LAB, IMAGING, MEDICAL_REPORT,
+// REFERRAL, FUNCTIONAL, OTHER — ver seed.ts)
+// =====================================================================
+model ExamType {
+  id       String  @id @default(uuid())
+  code     String  @unique
+  name     String
+  isActive Boolean @default(true) @map("is_active")
+
+  exams Exam[]
+
+  @@map("exam_types")
+}
+
+// =====================================================================
+// Exams
+// =====================================================================
+model Exam {
+  id       String @id @default(uuid())
+  clinicId String @map("clinic_id")
+  patientId String @map("patient_id")
+  examTypeId String @map("exam_type_id")
+
+  title             String
+  examDate          DateTime @map("exam_date") @db.Date
+  professionalName  String?  @map("professional_name")
+  notes             String?
+
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
+  clinic   Clinic   @relation(fields: [clinicId], references: [id])
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  examType ExamType @relation(fields: [examTypeId], references: [id])
+  creator  User     @relation("ExamCreatedBy", fields: [createdBy], references: [id])
+  deleter  User?    @relation("ExamDeletedBy", fields: [deletedBy], references: [id])
+
+  versions  ExamVersion[]
+  auditLogs AuditLog[]
+
+  // Toda consulta de exámenes filtra primero por clínica: este orden
+  // de índice es el que sostiene el aislamiento multitenant (RF-004).
+  @@index([clinicId, patientId])
+  @@index([clinicId, deletedAt])
+  @@map("exams")
+}
+
+// =====================================================================
+// Exam versions (versionamiento documental)
+// =====================================================================
+model ExamVersion {
+  id            String @id @default(uuid())
+  examId        String @map("exam_id")
+  versionNumber Int    @map("version_number")
+
+  storageKey       String @map("storage_key") // clave en MinIO/S3
+  originalFilename String @map("original_filename")
+  mimeType         String @map("mime_type")
+  sizeBytes        BigInt @map("size_bytes")
+  sha256           String @db.VarChar(64)
+
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  exam     Exam @relation(fields: [examId], references: [id])
+  uploader User @relation("VersionUploadedBy", fields: [uploadedBy], references: [id])
+
+  @@unique([examId, versionNumber])
+  @@index([examId])
+  @@map("exam_versions")
+}
+
+// =====================================================================
+// Audit logs (RF-022, RNF-004, cumplimiento UK GDPR)
+// =====================================================================
+model AuditLog {
+  id       String @id @default(uuid())
+  clinicId String @map("clinic_id")
+  actorId  String @map("actor_id")
+
+  patientId     String? @map("patient_id")
+  examId        String? @map("exam_id")
+  examVersionId String? @map("exam_version_id")
+
+  action    AuditAction
+  ipAddress String?     @map("ip_address")
+  userAgent String?     @map("user_agent")
+  metadata  Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  clinic  Clinic  @relation(fields: [clinicId], references: [id])
+  actor   User    @relation("AuditActor", fields: [actorId], references: [id])
+  patient Patient? @relation(fields: [patientId], references: [id])
+  exam    Exam?    @relation(fields: [examId], references: [id])
+
+  @@index([clinicId, createdAt])
+  @@index([examId])
+  @@map("audit_logs")
+}
+
+// =====================================================================
+// Refresh tokens (US-007)
+// =====================================================================
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}

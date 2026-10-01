@@ -1,0 +1,25 @@
+{
+  "name": "wellq-api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "argon2": "^0.41.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.20.0",
+    "typescript": "^5.6.2",
+    "ts-node": "^10.9.2",
+    "@types/node": "^22.7.4"
+  }
+}
