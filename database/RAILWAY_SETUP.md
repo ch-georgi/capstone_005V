@@ -1,5 +1,7 @@
 # Despliegue de la base de datos en Railway
 
+Contrato vigente: [contracts/README.md](contracts/README.md). PostgreSQL usa schema public, roles por UserClinic y fichas Patient privadas por clínica. La migración inicial fue regenerada para un entorno descartable; no aplicarla como reemplazo sobre una base con migraciones antiguas y datos que conservar. Después de migrate deploy ejecutar postgresql/application_role.sql como dueño y asignar wellq_app al login de API; ese login no debe ser dueño ni heredar al migrador. No utilizar db push, que omite constraints/triggers SQL. El seed usa upserts; db:fixtures carga los archivos reales al bucket por separado.
+
 Notas para dejar PostgreSQL funcionando en Railway, alineado a la arquitectura de despliegue documentada (sección 21 de la propuesta):
 GitHub → GitHub Actions (lint/tests/build) → Railway (Web / API / PostgreSQL).
 
@@ -87,5 +89,4 @@ vivo, antes de la demo, que el seed se aplicó correctamente.
 - [ ] `DATABASE_URL` conectado y migraciones aplicadas sin error.
 - [ ] `npx prisma migrate deploy` corre limpio en el pipeline de CI/CD (US-005).
 - [ ] Seed ejecutado al menos una vez para tener datos de demo.
-- [ ] Verificado con Prisma Studio que las 2 clínicas están aisladas
-      correctamente (ningún dato cruzado).
+- [ ] Suite de integridad PostgreSQL ejecutada en base temporal, y autorización cross-tenant probada en la API cuando exista. Prisma Studio por sí solo no comprueba aislamiento.

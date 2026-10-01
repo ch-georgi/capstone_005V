@@ -133,7 +133,7 @@ Permitirá registrar y administrar clínicas dentro de la plataforma.
 
 ## FP-03 — Gestión de usuarios
 
-Permitirá administrar usuarios y asignarles roles dentro de una clínica.
+Permitirá administrar usuarios y asignarles rol y actividad dentro de cada clínica mediante UserClinic; la misma cuenta puede tener condiciones distintas en otra clínica.
 
 ## FP-04 — Gestión de pacientes
 
@@ -321,7 +321,7 @@ Formatos MVP:
 
 Tamaño máximo inicial:
 
-> **10 MB por archivo**
+> **10.000.000 bytes por archivo (10 MB decimales)**
 
 ## 7.6 Integridad
 
@@ -473,7 +473,8 @@ El sistema deberá permitir que un usuario registrado inicie sesión mediante co
 
 - credenciales correctas generan sesión;
 - credenciales incorrectas son rechazadas;
-- usuario inactivo no ingresa.
+- una cuenta pendiente sin credenciales no ingresa;
+- una membresía inactiva pierde funciones clínicas y escritura, pero un paciente conserva lectura histórica propia.
 
 ---
 
@@ -491,7 +492,7 @@ Toda operación clínica deberá ejecutarse dentro de una clínica autorizada.
 
 ## RF-004 — Aislamiento multitenant
 
-Un usuario perteneciente a la Clínica A no deberá poder consultar recursos privados de la Clínica B.
+Un usuario solo deberá consultar recursos privados de clínicas autorizadas. Una cuenta con membresías en A y B utiliza el contexto y permisos propios de cada una, sin compartir datos administrativos de pacientes entre fichas.
 
 Este requisito será **crítico**.
 
@@ -499,13 +500,13 @@ Este requisito será **crítico**.
 
 ## RF-005 — Registro de pacientes
 
-Clinic Administrator podrá registrar pacientes.
+Clinic Administrator podrá registrar una ficha privada por clínica asociada a una membresía PATIENT; puede crear una cuenta pendiente si aún no hay credenciales.
 
 ---
 
 ## RF-006 — Consulta de pacientes
 
-Clinician podrá consultar los pacientes a los que tenga acceso.
+Clinician activo podrá consultar todos los pacientes activos no eliminados de su clínica activa. No se utiliza asignación profesional-paciente en el MVP.
 
 ---
 
@@ -914,399 +915,106 @@ Esto permite cambiar MinIO por otro proveedor compatible con S3 sin modificar la
 
 ---
 
-# 14. PostgreSQL — Modelo entidad-relación
+# 14. PostgreSQL — Modelo vigente
 
-Propongo inicialmente estas entidades:
-
-```text
-Clinic
-User
-UserClinic
-Patient
-PatientClinic
-ExamType
-Exam
-ExamVersion
-AuditLog
-RefreshToken
-```
-
-## Relaciones
+Decisiones cerradas el 1 de octubre de 2026. Este modelo reemplaza el borrador anterior. El contrato detallado de persistencia, permisos, carga, purga y sincronización está en [database/contracts/README.md](../database/contracts/README.md).
 
 ```mermaid
 erDiagram
-    CLINIC ||--o{ USER_CLINIC : contains
-    USER ||--o{ USER_CLINIC : belongs
-
-    CLINIC ||--o{ PATIENT_CLINIC : serves
-    PATIENT ||--o{ PATIENT_CLINIC : belongs
-
-    PATIENT ||--o{ EXAM : has
-    CLINIC ||--o{ EXAM : owns
-    EXAM_TYPE ||--o{ EXAM : classifies
-
-    EXAM ||--|{ EXAM_VERSION : versions
-
-    USER ||--o{ EXAM : creates
-    USER ||--o{ EXAM_VERSION : uploads
-
-    CLINIC ||--o{ AUDIT_LOG : contains
-    USER ||--o{ AUDIT_LOG : generates
-
-    USER ||--o{ REFRESH_TOKEN : owns
+    USER ||--o{ USER_CLINIC : membership
+    CLINIC ||--o{ USER_CLINIC : tenant
+    USER_CLINIC ||--o| PATIENT : private_record
+    PATIENT ||--o{ EXAM : documents
+    EXAM_TYPE ||--o{ EXAM : classification
+    EXAM ||--|{ EXAM_VERSION : immutable_files
+    USER ||--o{ REFRESH_TOKEN : sessions
+    CLINIC ||--o{ AUDIT_LOG : historical_events
+    EXAM_VERSION o|--o{ AUDIT_LOG : live_reference
+    CLINIC ||--o{ SYNC_CHANGE : committed_revisions
+    CLINIC ||--o{ IDEMPOTENCY_RECORD : upload_results
+    CLINIC ||--o{ STORAGE_DELETION_JOB : object_cleanup
 ```
 
----
+No hay PatientClinic: Patient es una ficha por clínica y referencia la única membresía UserClinic. La misma cuenta puede tener fichas distintas en varias clínicas. Un Patient no es una identidad clínica global compartida.
 
-# 15. PostgreSQL — tablas principales
+# 15. PostgreSQL — entidades y reglas
 
-## clinics
+El schema completo y tipos se encuentran en [schema.prisma](../apps/api/prisma/schema.prisma); restricciones y triggers adicionales se incluyen en la migración inicial.
 
-```text
-id UUID PK
-name VARCHAR
-code VARCHAR UNIQUE
-is_active BOOLEAN
-created_at TIMESTAMP
-updated_at TIMESTAMP
-```
+| Entidad | Datos y reglas principales |
+|---|---|
+| clinics | UUID, nombre, código único, actividad, contador de cambios y fechas |
+| users | UUID global, correo de login normalizado único opcional, hash opcional, is_system_admin, fechas; sin rol ni actividad de tenant |
+| user_clinics | PK(user_id,clinic_id), rol CLINIC_ADMIN/CLINICIAN/PATIENT, actividad, presentación, revisión de permisos, fechas |
+| patients | UUID de ficha, FK(user_id,clinic_id) a membresía, unicidad de esa pareja, nombre, apellido, nacimiento, contacto privado, número de ficha único por clínica, borrado lógico y fechas |
+| exam_types | Catálogo LAB/IMAGING/MEDICAL_REPORT/REFERRAL/FUNCTIONAL/OTHER |
+| exams | UUID, clínica, FK(patient_id,clinic_id) a ficha, tipo, título, fecha, profesional informado opcional, notas, creador, borrado lógico y fechas |
+| exam_versions | UUID, examen, número positivo único por examen, clave de objeto única, nombre original, MIME permitido, tamaño, SHA-256, uploader y fecha; un archivo por versión e inmutabilidad |
+| audit_logs | Actor, clínica, ficha, FKs operativas a examen/versión, UUIDs históricos, snapshot de archivo, acción, IP, user-agent, metadata y fecha |
+| refresh_tokens | Usuario, hash único, expiración, revocación por sesión y fecha |
+| idempotency_records | Usuario, clínica, UUID de operación, operación, huella y respuesta confirmada; unicidad por contexto y operación |
+| sync_changes | Clínica+revisión, entidad, UUID, ficha afectada, UPSERT/DELETE, payload y fecha; conserva tombstones |
+| storage_deletion_jobs | Destino inmutable, clínica, UUIDs históricos de examen/versión, estado, intentos, lease, errores y fechas |
 
-## users
+Una cuenta pendiente puede tener ficha/membresía sin email de login ni contraseña, pero no puede autenticarse. El correo administrativo de la ficha no identifica automáticamente la cuenta. La activación o vinculación requiere verificación; una colisión de fichas por usuario/clínica necesita conciliación explícita.
 
-```text
-id UUID PK
-email VARCHAR UNIQUE
-password_hash VARCHAR
-first_name VARCHAR
-last_name VARCHAR
-role ENUM
-is_active BOOLEAN
-created_at
-updated_at
-```
+Los roles y la actividad son por clínica. Los clínicos activos pueden consultar todos los pacientes activos no eliminados de su propia clínica; no se requiere asignación profesional-paciente en el MVP. El administrador global no obtiene acceso clínico automáticamente.
 
-## user_clinics
+Los pacientes/membresías no se borran físicamente. El propietario conserva lectura de sus exámenes no eliminados aun con membresía inactiva, ficha eliminada o clínica inactiva; no conserva escritura. Las FKs de examen comprueban identidad de ficha/clínica y no requieren actividad.
 
-```text
-user_id UUID FK
-clinic_id UUID FK
+Los exámenes se eliminan lógicamente. Una purga explícita posterior exige administrador activo de clínica activa, conserva auditoría y tombstones y encola borrado S3. Las FKs de auditoría a examen/versión se anulan al purgar, pero sus identificadores históricos y snapshot permanecen. Los logs son inmutables.
 
-PK(user_id, clinic_id)
-```
+Límite: 1..10.000.000 bytes, MIME PDF/JPEG/PNG, SHA-256 hexadecimal de 64 caracteres en minúsculas. Un examen no se publica sin primera versión: objeto verificado, metadatos+auditoría+idempotencia en una transacción. La numeración concurrente se resuelve en backend con bloqueo clínica→examen. Toda versión nueva actualiza el examen y emite cambios.
 
-## patients
+UUID es un tipo nativo PostgreSQL, con generación en la base. Fechas clínicas DATE, instantes timestamptz(3), updated_at mediante triggers. Los índices optimizan consultas; la autorización del backend determina el acceso.
 
-```text
-id UUID PK
-first_name
-last_name
-date_of_birth
-email
-phone
-created_at
-updated_at
-```
+# 16. SQLite — finalidad y contexto
 
-Evitaría almacenar más información clínica de la necesaria.
+Una base Android compartida, subordinada a PostgreSQL. Todas las filas operativas se separan mediante propietario de sesión y clínica. Solo la caché confirmada se reconstruye desde el servidor; cargas pendientes y archivos sin confirmar no son desechables.
 
-## patient_clinics
-
-```text
-patient_id UUID FK
-clinic_id UUID FK
-medical_record_number VARCHAR
-is_active BOOLEAN
-
-PK(patient_id, clinic_id)
-```
-
-## exam_types
-
-```text
-id UUID PK
-code
-name
-is_active
-```
-
-Seed:
-
-```text
-LAB
-IMAGING
-MEDICAL_REPORT
-REFERRAL
-FUNCTIONAL
-OTHER
-```
-
-## exams
-
-```text
-id UUID PK
-clinic_id UUID FK
-patient_id UUID FK
-exam_type_id UUID FK
-
-title VARCHAR
-exam_date DATE
-professional_name VARCHAR NULL
-notes TEXT NULL
-
-created_by UUID FK
-created_at
-updated_at
-
-deleted_at NULL
-deleted_by UUID NULL
-```
-
-## exam_versions
-
-```text
-id UUID PK
-exam_id UUID FK
-
-version_number INTEGER
-
-storage_key VARCHAR
-original_filename VARCHAR
-mime_type VARCHAR
-size_bytes BIGINT
-sha256 VARCHAR(64)
-
-uploaded_by UUID FK
-created_at TIMESTAMP
-```
-
-Restricción:
-
-```text
-UNIQUE(exam_id, version_number)
-```
-
-## audit_logs
-
-```text
-id UUID PK
-
-clinic_id UUID FK
-actor_id UUID FK
-
-patient_id UUID NULL
-exam_id UUID NULL
-exam_version_id UUID NULL
-
-action VARCHAR
-ip_address VARCHAR
-user_agent TEXT
-metadata JSONB
-
-created_at TIMESTAMP
-```
-
----
-
-# 16. SQLite — objetivo
-
-SQLite **no será una copia completa de PostgreSQL**.
-
-Su propósito será:
-
-- cachear información;
-- mejorar tiempos de apertura;
-- conservar datos básicos temporalmente;
-- administrar sincronización.
-
-El servidor seguirá siendo la fuente de verdad.
-
----
-
-# 17. SQLite — Modelo entidad-relación Android
+# 17. SQLite — relaciones
 
 ```mermaid
 erDiagram
-    LOCAL_PATIENT ||--o{ LOCAL_EXAM : has
-    LOCAL_EXAM ||--o{ LOCAL_EXAM_VERSION : versions
-    LOCAL_EXAM ||--o{ SYNC_QUEUE : references
-
-    SYNC_METADATA ||--|| SYNC_METADATA : state
+    LOCAL_CONTEXT ||--o{ LOCAL_PATIENT : scoped_cache
+    LOCAL_PATIENT ||--o{ LOCAL_EXAM : documents
+    LOCAL_EXAM ||--o{ LOCAL_EXAM_VERSION : confirmed_versions
+    LOCAL_CONTEXT ||--o{ SYNC_QUEUE : pending_uploads
+    LOCAL_CONTEXT ||--o| SYNC_METADATA : cursor
 ```
 
-Tablas propuestas:
+PKs y FKs incluyen owner_user_id y clinic_id. La cola no depende por FK de filas descartables de caché: un tombstone no destruye una carga pendiente. Las identidades de contexto no pueden reasignarse.
 
-```text
-local_patients
-local_exams
-local_exam_versions
-sync_queue
-sync_metadata
-```
+# 18. SQLite — tablas vigentes
 
----
+| Tabla | Función |
+|---|---|
+| local_contexts | Cuenta, clínica, rol, revisión de permisos, READ_WRITE/READ_ONLY/REVOKED |
+| local_patients | Fichas privadas confirmadas, actividad derivada, borrado lógico y actualización |
+| local_exams | Metadatos confirmados, latest_server_version y current_version nullable |
+| local_exam_versions | Versiones confirmadas, checksum/tamaño/MIME, URI privada y fecha de verificación |
+| sync_queue | Operación estable, contexto, payload v1, archivo persistente, huella, estado, intentos, pausa, próxima ejecución y lease |
+| sync_metadata | Cursor opaco y revisión por cuenta, clínica y stream clínico |
+| local_file_cleanup | Borrados de archivos físicos por procesar después del commit |
+| legacy_queue_quarantine | Pendientes antiguos sin propietario/clínica verificados; conserva también legacy_sync_queue_raw al migrar |
 
-# 18. SQLite — tablas
+current_version identifica la versión de número más alto cuyo archivo se descargó y verificó y sigue presente. No es la última versión del servidor ni la última página de metadatos. Sin archivo local no hay apertura offline; online se descarga y verifica antes de abrir. remote_available fue eliminado; las entidades pendientes se mantienen solo en cola.
 
-## local_patients
-
-```text
-id TEXT PK
-first_name TEXT
-last_name TEXT
-clinic_id TEXT
-updated_at TEXT
-```
-
-En el caso del paciente móvil normalmente contendrá solamente al propio paciente.
-
-## local_exams
-
-```text
-id TEXT PK
-patient_id TEXT
-exam_type_code TEXT
-exam_type_name TEXT
-title TEXT
-exam_date TEXT
-professional_name TEXT
-current_version INTEGER
-deleted INTEGER
-updated_at TEXT
-```
-
-## local_exam_versions
-
-```text
-id TEXT PK
-exam_id TEXT
-version_number INTEGER
-original_filename TEXT
-mime_type TEXT
-size_bytes INTEGER
-sha256 TEXT
-remote_available INTEGER
-local_file_uri TEXT NULL
-created_at TEXT
-```
-
-No guardar el archivo dentro de SQLite.
-
-`local_file_uri` apunta a almacenamiento privado de la aplicación.
-
-## sync_queue
-
-```text
-id TEXT PK
-
-operation TEXT
-entity_type TEXT
-entity_id TEXT
-
-payload TEXT
-file_uri TEXT NULL
-
-status TEXT
-retry_count INTEGER
-last_error TEXT NULL
-
-created_at TEXT
-updated_at TEXT
-```
-
-Estados:
-
-```text
-PENDING
-PROCESSING
-FAILED
-COMPLETED
-```
-
-## sync_metadata
-
-```text
-key TEXT PK
-value TEXT
-```
-
-Por ejemplo:
-
-```text
-last_exam_sync
-last_patient_sync
-```
-
----
+Todas las PK son NOT NULL; hay validación de UUID, tipos efectivos, fechas reales, timestamps UTC, booleanos, MIME, tamaño, hash, estados y JSON. No se depende de STRICT. Las migraciones son secuenciales con user_version, transacción exclusiva y foreign_keys en cada conexión. Un esquema antiguo desconocido se rechaza; uno conocido conserva los pendientes íntegros en cuarentena sin adivinar su sesión.
 
 # 19. Seguridad móvil
 
-Importante:
+JWT y refresh token permanecen en almacenamiento seguro Android, nunca en SQLite. Una sesión no puede consultar ni enviar la cola de otra. Una cuenta inactiva conserva lectura histórica propia, sin permitir escritura; al recuperar conexión se actualiza el estado de permisos y se retira caché que ya no corresponde.
 
-**JWT/refresh token no deberían almacenarse en SQLite.**
+IndexedDB/Dexie (`database/local_db.ts`) es una propuesta futura de PWA, no el reemplazo vigente de SQLite. Android sigue dentro del alcance y PWA sigue siendo opcional.
 
-Utilicen almacenamiento seguro provisto por el sistema operativo, por ejemplo mediante las capacidades seguras disponibles en Expo/Android.
+# 20. Carga y sincronización — contrato
 
-SQLite:
+CREATE_EXAM_WITH_VERSION publica examen y primer archivo juntos; UPLOAD_VERSION agrega un archivo a un examen existente. UUID de operación y solicitud no cambian en reintentos. El servidor guarda resultado por usuario/clínica/operación: misma huella devuelve el resultado, huella diferente devuelve 409. La cola tiene lease de cinco minutos, recuperación tras interrupción, hasta ocho intentos y backoff 5 segundos..5 minutos. Errores de autenticación/permisos pausan el envío. Un cambio de cuenta no reasigna pendientes.
 
-> datos de aplicación.
+GET /api/v1/sync devuelve snapshot inicial consistente y luego cambios incrementales mediante cursor firmado del servidor. El cursor queda vinculado a usuario, clínica y revisión de permisos; revisiones son cadenas decimales. La revisión se asigna bajo bloqueo transaccional por clínica, no con reloj del móvil ni secuencia previa al commit. Borrados generan tombstones que sobreviven a purgas.
 
-Secure Storage:
-
-> credenciales.
-
----
-
-# 20. Estrategia de sincronización
-
-En nueve semanas no construiría un motor offline-first sofisticado.
-
-Implementaría:
-
-### Lectura
-
-```text
-Abrir pantalla
-   ↓
-Mostrar caché SQLite
-   ↓
-Consultar API
-   ↓
-Actualizar SQLite
-   ↓
-Actualizar UI
-```
-
-### Escritura online
-
-```text
-Usuario sube examen
-   ↓
-API disponible
-   ↓
-Upload
-   ↓
-Respuesta OK
-   ↓
-Actualizar SQLite
-```
-
-### Escritura sin conexión
-
-Stretch/MVP limitado:
-
-```text
-Usuario selecciona archivo
-   ↓
-Guardar referencia local
-   ↓
-sync_queue = PENDING
-   ↓
-Recupera conexión
-   ↓
-Subir
-```
-
-No intentaría implementar resolución de conflictos complejos.
+Página y cursor se aplican juntos en SQLite; repeticiones son idempotentes. Un cambio de permisos exige snapshot nuevo del contexto, conservando pendientes. Se filtran eventos según autorización actual, no se devuelve directamente el payload histórico. La API y el worker S3 aún son contratos pendientes de implementación; las tablas, triggers y adaptadores que los soportan sí están implementados.
 
 ---
 
@@ -1640,7 +1348,7 @@ En cada PR se ejecutan:
 
 ### Criterios
 
-Los cuatro perfiles poseen permisos diferenciados.
+Los cuatro perfiles poseen permisos diferenciados: administrador global mediante User.isSystemAdmin y roles clínicos por UserClinic, sin acceso clínico automático para el administrador global.
 
 ---
 
@@ -1765,7 +1473,7 @@ Tests automatizados para:
 ### Criterios
 
 - MIME;
-- 10 MB;
+- 10.000.000 bytes;
 - PDF/JPEG/PNG;
 - rechazo correcto.
 

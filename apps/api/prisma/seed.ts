@@ -1,202 +1,59 @@
-// apps/api/prisma/seed.ts
-//
-// Seed data alineado al requisito OR-002 de la Propuesta de Redefinición:
-//   Clínica A, Clínica B
-//   2 administradores, 4 profesionales, 10 pacientes, 20 exámenes
-//
-// Uso:
-//   npx ts-node prisma/seed.ts
-//   (o configurar "prisma": { "seed": "ts-node prisma/seed.ts" } en
-//    package.json para correrlo automáticamente con `npx prisma db seed`)
-
-import { PrismaClient, UserRole } from "@prisma/client";
-import * as argon2 from "argon2"; // RNF-001: hash seguro (Argon2)
-
-const prisma = new PrismaClient();
-
-const EXAM_TYPES = [
-  { code: "LAB", name: "Examen de laboratorio" },
-  { code: "IMAGING", name: "Estudio de imagenología" },
-  { code: "MEDICAL_REPORT", name: "Informe médico" },
-  { code: "REFERRAL", name: "Derivación" },
-  { code: "FUNCTIONAL", name: "Evaluación funcional" },
-  { code: "OTHER", name: "Otro" },
-];
-
+import { PrismaClient, TenantRole } from '@prisma/client';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import * as argon2 from 'argon2';
+const db = new PrismaClient();
+// Stable UUIDs make the synthetic seed repeatable without deleting history.
+const id = (group:number,n:number) => `${group.toString(16).padStart(8,'0')}-0000-4000-8000-${n.toString(16).padStart(12,'0')}`;
 async function main() {
-  console.log("Limpiando datos existentes...");
-  await prisma.auditLog.deleteMany();
-  await prisma.examVersion.deleteMany();
-  await prisma.exam.deleteMany();
-  await prisma.patientClinic.deleteMany();
-  await prisma.patient.deleteMany();
-  await prisma.refreshToken.deleteMany();
-  await prisma.userClinic.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.examType.deleteMany();
-  await prisma.clinic.deleteMany();
-
-  // ---------- Catálogo de tipos de examen ----------
-  console.log("Creando catálogo de tipos de examen...");
-  const examTypes = await Promise.all(
-    EXAM_TYPES.map((t) => prisma.examType.create({ data: t }))
-  );
-
-  // ---------- Clínicas ----------
-  console.log("Creando clínicas...");
-  const clinicA = await prisma.clinic.create({
-    data: { name: "Clínica A - Riverside Physio", code: "CLINIC_A" },
-  });
-  const clinicB = await prisma.clinic.create({
-    data: { name: "Clínica B - Northgate Rehab", code: "CLINIC_B" },
-  });
-
-  // ---------- Usuarios: 2 administradores (1 por clínica) ----------
-  console.log("Creando administradores...");
-  const passwordHash = await argon2.hash("Demo1234!");
-
-  const adminA = await prisma.user.create({
-    data: {
-      email: "admin@riverside-physio.co.uk",
-      passwordHash,
-      firstName: "Jane",
-      lastName: "Smith",
-      role: UserRole.CLINIC_ADMIN,
-      userClinics: { create: { clinicId: clinicA.id } },
-    },
-  });
-
-  const adminB = await prisma.user.create({
-    data: {
-      email: "admin@northgate-rehab.co.uk",
-      passwordHash,
-      firstName: "Arjun",
-      lastName: "Patel",
-      role: UserRole.CLINIC_ADMIN,
-      userClinics: { create: { clinicId: clinicB.id } },
-    },
-  });
-
-  // ---------- Usuarios: 4 profesionales (2 por clínica) ----------
-  console.log("Creando profesionales clínicos...");
-  const cliniciansData = [
-    { email: "j.taylor@riverside-physio.co.uk", first: "James", last: "Taylor", clinic: clinicA },
-    { email: "e.brown@riverside-physio.co.uk", first: "Emily", last: "Brown", clinic: clinicA },
-    { email: "r.khan@northgate-rehab.co.uk", first: "Raj", last: "Khan", clinic: clinicB },
-    { email: "s.wilson@northgate-rehab.co.uk", first: "Sophie", last: "Wilson", clinic: clinicB },
-  ];
-
-  const clinicians = await Promise.all(
-    cliniciansData.map((c) =>
-      prisma.user.create({
-        data: {
-          email: c.email,
-          passwordHash,
-          firstName: c.first,
-          lastName: c.last,
-          role: UserRole.CLINICIAN,
-          userClinics: { create: { clinicId: c.clinic.id } },
-        },
-      })
-    )
-  );
-
-  // ---------- Pacientes: 10 (5 por clínica) ----------
-  console.log("Creando pacientes...");
-  const patientNames = [
-    ["Emma", "Wilson"], ["Oliver", "Brown"], ["Sophie", "Turner"],
-    ["Liam", "Davies"], ["Ava", "Robinson"], ["Noah", "Clarke"],
-    ["Mia", "Edwards"], ["Jack", "Walker"], ["Isla", "Hughes"],
-    ["Leo", "Baker"],
-  ];
-
-  const patients = [];
-  for (let i = 0; i < patientNames.length; i++) {
-    const [firstName, lastName] = patientNames[i];
-    const clinic = i < 5 ? clinicA : clinicB;
-    const patient = await prisma.patient.create({
-      data: {
-        firstName,
-        lastName,
-        dateOfBirth: new Date(1970 + i * 3, i % 12, (i % 27) + 1),
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-        patientClinics: {
-          create: {
-            clinicId: clinic.id,
-            medicalRecordNumber: `MRN-${clinic.code}-${1000 + i}`,
-          },
-        },
-      },
-    });
-    patients.push({ patient, clinic });
+  const fixture=await readFile(resolve(__dirname,'../../../database/fixtures/documento-demo.pdf'));
+  const sha256=createHash('sha256').update(fixture).digest('hex');
+  const passwordHash=await argon2.hash('Demo1234!');
+  const clinics=[id(1,1),id(1,2)];
+  for (let i=0;i<2;i++) await db.clinic.upsert({where:{id:clinics[i]},update:{},create:{id:clinics[i],name:`Clínica ${i?'B':'A'}`,code:`CLINIC_${i?'B':'A'}`}});
+  const codes=['LAB','IMAGING','MEDICAL_REPORT','REFERRAL','FUNCTIONAL','OTHER'];
+  const names=['Laboratorio','Imagenología','Informe médico','Derivación','Evaluación funcional','Otro'];
+  for(let i=0;i<codes.length;i++) await db.examType.upsert({where:{id:id(2,i+1)},update:{},create:{id:id(2,i+1),code:codes[i],name:names[i]}});
+  const makeUser=async (uid:string,email:string|null)=>db.user.upsert({where:{id:uid},update:{},create:{id:uid,email,passwordHash:email?passwordHash:null}});
+  const membership=async(uid:string,clinicId:string,role:TenantRole,displayName:string,isActive=true)=>db.userClinic.upsert({where:{userId_clinicId:{userId:uid,clinicId}},update:{},create:{userId:uid,clinicId,role,displayName,isActive}});
+  await makeUser(id(3,99),'system@example.com');
+  await db.user.update({where:{id:id(3,99)},data:{isSystemAdmin:true}});
+  for(let i=0;i<2;i++) {
+    await makeUser(id(3,i+1),`admin${i+1}@example.com`);
+    await membership(id(3,i+1),clinics[i],TenantRole.CLINIC_ADMIN,`Administrador ${i+1}`);
   }
-
-  // ---------- Exámenes: 20 (2 por paciente) ----------
-  console.log("Creando exámenes de ejemplo...");
-  let examCount = 0;
-  for (const { patient, clinic } of patients) {
-    const clinicianPool = clinicians.filter((_, idx) =>
-      clinic.id === clinicA.id ? idx < 2 : idx >= 2
-    );
-    const creator = clinicianPool[examCount % clinicianPool.length];
-
-    for (let v = 0; v < 2; v++) {
-      const examType = examTypes[(examCount + v) % examTypes.length];
-
-      const exam = await prisma.exam.create({
-        data: {
-          clinicId: clinic.id,
-          patientId: patient.id,
-          examTypeId: examType.id,
-          title: `${examType.name} - ${patient.firstName} ${patient.lastName}`,
-          examDate: new Date(2026, (examCount + v) % 12, 10),
-          professionalName: `${creator.firstName} ${creator.lastName}`,
-          createdBy: creator.id,
-        },
+  // Same account: administrator in A, clinician in B, with independent activation.
+  await membership(id(3,1),clinics[1],TenantRole.CLINICIAN,'Profesional compartido',false);
+  for(let i=0;i<4;i++) {
+    await makeUser(id(4,i+1),`clinician${i+1}@example.com`);
+    await membership(id(4,i+1),clinics[Math.floor(i/2)],TenantRole.CLINICIAN,`Profesional ${i+1}`);
+  }
+  // Ten private patient records; the first person has separate records in A and B.
+  for(let i=0;i<10;i++) {
+    const clinicId=clinics[Math.floor(i/5)], patientId=id(6,i+1);
+    const userId=id(5,i===5?1:i+1);
+    await makeUser(userId,i===9?null:`patient${i===5?1:i+1}@example.com`);
+    await membership(userId,clinicId,TenantRole.PATIENT,`Paciente ${i+1}`);
+    await db.patient.upsert({where:{id:patientId},update:{},create:{id:patientId,userId,clinicId,firstName:i===5?'Nombre privado B':`Paciente ${i+1}`,lastName:'Sintético',dateOfBirth:new Date('1990-01-10T00:00:00Z'),email:`contacto-clinica-${i+1}@example.com`,phone:`+44000000${i}`,medicalRecordNumber:`MRN-${i+1}`}});
+    const actor=id(4,Math.floor(i/5)*2+1);
+    for(let j=0;j<2;j++) {
+      const n=i*2+j+1,examId=id(7,n),versionId=id(8,n);
+      if(await db.exam.findUnique({where:{id:examId}})) continue;
+      await db.$transaction(async(tx)=>{
+        // Clinic first, then exam: same lock order as the future backend.
+        await tx.$queryRaw`SELECT id FROM clinics WHERE id=${clinicId}::uuid FOR UPDATE`;
+        await tx.exam.create({data:{id:examId,clinicId,patientId,examTypeId:id(2,n%6+1),title:`Examen sintético ${n}`,examDate:new Date('2026-09-10T00:00:00Z'),professionalName:'Profesional demo',createdBy:actor}});
+        await tx.examVersion.create({data:{id:versionId,examId,versionNumber:1,storageKey:`clinics/${clinicId}/patients/${patientId}/exams/${examId}/versions/${versionId}`,originalFilename:'documento-demo.pdf',mimeType:'application/pdf',sizeBytes:BigInt(fixture.length),sha256,uploadedBy:actor}});
+        await tx.auditLog.create({data:{clinicId,actorId:actor,patientId,examId,examVersionId:versionId,action:'CREATE'}});
       });
-
-      // Primera versión del documento (archivo simulado, no real)
-      await prisma.examVersion.create({
-        data: {
-          examId: exam.id,
-          versionNumber: 1,
-          storageKey: `clinics/${clinic.id}/patients/${patient.id}/exams/${exam.id}/v1.pdf`,
-          originalFilename: "documento-demo.pdf",
-          mimeType: "application/pdf",
-          sizeBytes: BigInt(102_400),
-          sha256: "0".repeat(64), // placeholder: calcular real al subir archivo
-          uploadedBy: creator.id,
-        },
-      });
-
-      // Registro de auditoría de la creación (RF-022)
-      await prisma.auditLog.create({
-        data: {
-          clinicId: clinic.id,
-          actorId: creator.id,
-          patientId: patient.id,
-          examId: exam.id,
-          action: "CREATE",
-        },
-      });
-
-      examCount++;
     }
   }
-
-  console.log(`\nSeed completado: 2 clínicas, 2 admins, 4 profesionales, ${patients.length} pacientes, ${examCount} exámenes.`);
-  console.log(`\nCredenciales de prueba (todas usan la misma password): Demo1234!`);
-  console.log(`  ${adminA.email}`);
-  console.log(`  ${adminB.email}`);
-  console.log(`\nCaso de prueba crítico (RF-004 / US-010):`);
-  console.log(`  ${clinicians[0].email} (Clínica A) NO debe poder ver exámenes de pacientes de Clínica B.`);
+  // Historical records: apply only after their original exams were published.
+  await db.userClinic.update({where:{userId_clinicId:{userId:id(5,9),clinicId:clinics[1]}},data:{isActive:false}});
+  const deleted=await db.patient.findUniqueOrThrow({where:{id:id(6,8)}});
+  if(!deleted.deletedAt) await db.patient.update({where:{id:deleted.id},data:{deletedAt:new Date(),deletedBy:id(3,2)}});
+  console.log('Seed: 2 clínicas, 10 fichas, 20 exámenes; cuenta pendiente y acceso histórico.');
+  console.log('Archivos: ejecutar db:fixtures para cargar PDF reales al bucket antes de probar descargas.');
 }
-
-main()
-  .catch((e) => {
-    console.error("Seed falló:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>db.$disconnect());
