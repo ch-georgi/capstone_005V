@@ -1,12 +1,11 @@
-// apps/web/src/db/local_db.ts
-//
-// Almacenamiento local de la PWA (IndexedDB vía Dexie.js).
-// REEMPLAZA al esquema SQLite original (sqlite_mobile_schema.sql),
-// porque la PWA corre en el navegador y no tiene acceso a SQLite nativo.
+// PROPUESTA FUTURA NO VIGENTE: IndexedDB/Dexie para una eventual PWA.
+// Android utiliza sqlite_mobile_schema.sql y las migraciones de database/sqlite/.
+// Este prototipo conserva el diseño anterior; no es compatible con el contrato v2.
+// No importarlo en la app actual ni usarlo como fuente de requisitos.
 //
 // Misma función que antes: caché de lectura + cola de sincronización
 // para operaciones offline. PostgreSQL sigue siendo la única fuente
-// de verdad — esta base es desechable y reconstruible desde la API.
+// de verdad — solo la caché confirmada es reconstruible; las cargas pendientes se deben conservar.
 //
 // IMPORTANTE (igual que en la versión SQLite):
 //   El JWT / refresh token NUNCA se guardan aquí. Usar un mecanismo

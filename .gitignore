@@ -40,3 +40,6 @@ Thumbs.db
 *.pem
 *.key
 *.crt
+.cache/
+__pycache__/
+*.pyc

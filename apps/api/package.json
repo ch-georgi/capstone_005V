@@ -7,7 +7,14 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:fixtures": "ts-node scripts/upload-fixtures.ts",
+    "typecheck": "tsc --noEmit",
+    "test:postgres": "ts-node scripts/test-postgres.ts",
+    "test:sqlite": "python ../../database/tests/test_sqlite.py",
+    "test:local": "node ../../database/tests/run-local.cjs",
+    "db:check-invariants": "ts-node scripts/check-invariants.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

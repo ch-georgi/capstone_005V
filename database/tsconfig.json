@@ -1,0 +1,5 @@
+{
+  "extends": "../apps/api/tsconfig.json",
+  "compilerOptions": {"rootDir": ".", "outDir": "../.cache/database", "typeRoots": ["../apps/api/node_modules/@types"]},
+  "include": ["sqlite/**/*.ts", "contracts/**/*.ts", "tests/**/*.ts"]
+}
