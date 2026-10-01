@@ -1,0 +1,42 @@
+# =====================================================================
+# .gitignore raíz — cubre TODO el monorepo (apps/api, apps/web,
+# apps/mobile, packages/, infrastructure/, etc.), no solo apps/api.
+# =====================================================================
+
+# Variables de entorno (credenciales reales) — nunca se suben.
+# El .env.example de cada app sí se sube, sin valores reales.
+.env
+.env.local
+.env.*.local
+**/.env
+!**/.env.example
+
+# Dependencias de Node (se reinstalan con npm install, no se versionan)
+node_modules/
+**/node_modules/
+
+# Builds compilados
+dist/
+build/
+**/dist/
+**/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración local de VS Code que no debe compartirse
+.vscode/*
+!.vscode/extensions.json
+
+# Prisma: el cliente generado no se versiona (se regenera con prisma generate)
+**/generated/prisma/
+
+# Certificados o claves que pudieran agregarse más adelante
+*.pem
+*.key
+*.crt
