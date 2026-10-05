@@ -35,6 +35,9 @@ jobs:
       - run: npm run db:validate --prefix apps/api
       - run: npm run db:generate --prefix apps/api
       - run: npm run typecheck --prefix apps/api
+      - run: npm run typecheck:test --prefix apps/api
+      - run: npm run build --prefix apps/api
+      - run: npm test --prefix apps/api
       - run: node apps/api/node_modules/typescript/bin/tsc --noEmit --project database/tsconfig.json
       - run: python database/tests/test_sqlite.py
       - run: node database/tests/run-local.cjs
@@ -43,3 +46,4 @@ jobs:
       - run: npm run db:seed --prefix apps/api
       - run: npm run db:seed --prefix apps/api
       - run: npm run test:postgres --prefix apps/api
+      - run: npm run test:integration --prefix apps/api

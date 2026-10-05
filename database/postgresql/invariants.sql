@@ -207,8 +207,7 @@ BEGIN
     IF p.clinic_id<>NEW.clinic_id THEN RAISE EXCEPTION 'Audit patient belongs to another clinic'; END IF;
   END IF;
   IF NEW.exam_id IS NOT NULL THEN
-    IF EXISTS(SELECT 1 FROM storage_deletion_jobs WHERE version_id=NEW.id OR storage_key=NEW.storage_key) OR EXISTS(SELECT 1 FROM sync_changes WHERE entity='EXAM_VERSION' AND entity_id=NEW.id) THEN RAISE EXCEPTION 'A historical version UUID/storage key cannot be reused'; END IF;
-  SELECT * INTO STRICT e FROM exams WHERE id=NEW.exam_id;
+    SELECT * INTO STRICT e FROM exams WHERE id=NEW.exam_id;
     IF e.clinic_id<>NEW.clinic_id OR NEW.patient_id IS DISTINCT FROM e.patient_id THEN RAISE EXCEPTION 'Incoherent audit exam'; END IF;
   END IF;
   IF NEW.exam_version_id IS NOT NULL THEN
