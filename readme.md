@@ -6,9 +6,9 @@ El alcance vigente está en [Propuesta de redefinición](Fase%201/Propuesta%20re
 
 ## Estado actual
 
-Implementados: schemas PostgreSQL/Prisma y SQLite v2, migración inicial con constraints/triggers, protección de auditoría y purga, seed repetible, PDF sintético real, script de fixtures S3, adaptadores de migración/cola/sync local, firma de cursor y hash de solicitudes, suites de pruebas y workflow CI.
+Implementados: API NestJS con login JWT global/clínico, autorización por rol y clínica, creación transaccional de usuarios, bootstrap de superadmin y OpenAPI/Swagger; schemas PostgreSQL/Prisma y SQLite v2, migración inicial con constraints/triggers, protección de auditoría y purga, seed repetible, PDF sintético real, script de fixtures S3, adaptadores de migración/cola/sync local, firma de cursor y hash de solicitudes, suites de pruebas y workflow CI.
 
-Pendientes: backend HTTP, autenticación/RBAC, autorización de consultas, coordinador de cargas, endpoint sync, worker S3 y UI web/Android. Las tablas y helpers no equivalen a tener esos flujos desplegados.
+Pendientes: refresh/logout, endpoints de clínicas/pacientes/exámenes/documentos y autorización de sus consultas, coordinador de cargas, endpoint sync, worker S3 y UI web/Android. Las carpetas futuras no implementan esos flujos. Guía del primer flujo y Swagger: [apps/api/README.md](apps/api/README.md).
 
 ## Modelo y privacidad
 
@@ -25,6 +25,15 @@ Cada versión contiene un archivo inmutable, PDF/JPEG/PNG, entre 1 y 10.000.000 
 SQLite es una base compartida que separa propietario y clínica en claves/FKs, cola y cursor. current_version es la última versión de archivo descargada y verificada; latest_server_version es la última confirmada por el servidor. Credenciales fuera de SQLite. La caché confirmada puede reconstruirse; los pendientes deben preservarse.
 
 ## Desarrollo y validación
+
+Para preparar PostgreSQL, MinIO, el `.env`, las migraciones y los PDF de
+demostración, seguir la [guía de puesta en marcha local](DESARROLLO_LOCAL.md).
+
+`docker compose up -d` levanta PostgreSQL en `localhost:5432` y MinIO en
+`localhost:9222` (S3), con consola en `localhost:9223` y volúmenes persistentes.
+La imagen de MinIO usa una versión fija de la compilación comunitaria
+[Coollabs](https://github.com/coollabsio/minio), construida desde las fuentes de
+MinIO; la referencia anterior `minio/minio` ya no se puede descargar desde Docker Hub.
 
 ```powershell
 npm.cmd ci --prefix apps/api

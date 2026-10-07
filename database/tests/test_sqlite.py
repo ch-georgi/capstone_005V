@@ -1,4 +1,4 @@
-import json,sqlite3,sys,unittest
+import json,re,sqlite3,sys,unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'sqlite'))
 from migrate import migrate
@@ -28,6 +28,10 @@ class SQLiteTests(unittest.TestCase):
  def test_migration_invariants_match_committed_migration(self):
   invariant=(ROOT/'database/postgresql/invariants.sql').read_text(encoding='utf-8')
   migration=(ROOT/'apps/api/prisma/migrations/20261001030827_init/migration.sql').read_text(encoding='utf-8')
+  repair=(ROOT/'apps/api/prisma/migrations/20261005120000_fix_protect_audit/migration.sql').read_text(encoding='utf-8')
+  pattern=r'CREATE (?:OR REPLACE )?FUNCTION protect_audit\(\)[\s\S]*?END \$\$;'
+  repaired_audit=re.search(pattern,repair).group().replace('CREATE OR REPLACE FUNCTION','CREATE FUNCTION')
+  migration=re.sub(pattern,lambda _:repaired_audit,migration,count=1)
   self.assertTrue(migration.endswith(invariant))
  def test_uuid_null_and_shape(self):
   self.rejected('local_exam_versions',self.version(id=None));self.rejected('local_exam_versions',self.version(id='not-a-uuid'))

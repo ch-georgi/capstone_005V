@@ -62,6 +62,13 @@ async function main() {
   await denied(tx,async()=>{await tx.exam.create({data:{clinicId:s.a,patientId:s.p,examTypeId:s.type,title:'No file',examDate:new Date(),createdBy:s.actor}});await tx.$executeRawUnsafe('SET CONSTRAINTS ALL IMMEDIATE');});
  });
  await check('audit coherence, version FK and immutable history',async(tx,s)=>{
+  for(const action of ['CREATE','VIEW','DOWNLOAD','NEW_VERSION'] as const) {
+   const audit=await tx.auditLog.create({data:{clinicId:s.a,actorId:s.actor,patientId:s.p,examId:s.exam,examVersionId:s.version,action}});
+   assert.equal(audit.historicalExamId,s.exam);assert.equal(audit.historicalVersionId,s.version);
+   assert.deepEqual(audit.fileMetadata,{original_filename:'test.pdf',mime_type:'application/pdf',size_bytes:100,sha256:'a'.repeat(64),version_number:1});
+  }
+  const examAudit=await tx.auditLog.create({data:{clinicId:s.a,actorId:s.actor,patientId:s.p,examId:s.exam,action:'CREATE'}});
+  assert.equal(examAudit.historicalExamId,s.exam);assert.equal(examAudit.examVersionId,null);
   await denied(tx,()=>tx.auditLog.create({data:{clinicId:s.a,actorId:s.actor,patientId:s.p,examId:s.exam,examVersionId:randomUUID(),action:'DOWNLOAD'}}));
   await denied(tx,()=>tx.auditLog.create({data:{clinicId:s.b,actorId:s.actor,patientId:s.p,examId:s.exam,examVersionId:s.version,action:'DOWNLOAD'}}));
   const log=await tx.auditLog.create({data:{clinicId:s.a,actorId:s.actor,patientId:s.p,examId:s.exam,examVersionId:s.version,action:'DOWNLOAD'}});
