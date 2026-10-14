@@ -9,9 +9,11 @@ export function createOpenApiDocument(app: INestApplication) {
     .setDescription('API académica multitenant. JWT clínico vinculado a clinicId; sesión GLOBAL solo para administración explícita. El superadmin no obtiene acceso clínico automático. Pacientes históricos conservan lectura propia. Refresh/logout pendientes (PB-018).')
     .addTag('Auth', 'Login global o por clínica.')
     .addTag('Users', 'Creación controlada de cuentas y membresías.')
+    .addTag('Patients', 'Fichas de pacientes por clínica.')
+    .addTag('Audit', 'Registro y consulta de auditoría clínica.')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build());
-  for (const name of ['CreateUserDto', 'LoginDto']) {
+  for (const name of ['CreateUserDto', 'LoginDto', 'CreatePatientDto', 'UpdatePatientDto']) {
     const schema = document.components?.schemas?.[name];
     if (schema && !('$ref' in schema)) schema.additionalProperties = false;
   }
