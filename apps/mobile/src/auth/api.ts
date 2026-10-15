@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import { Api, ApiError } from "./types";
+import { demoMode } from "./mode";
 const configuredUrl = Constants.expoConfig?.extra?.apiUrl;
 const base = (
   typeof configuredUrl === "string"
@@ -13,6 +14,7 @@ export const api: Api = {
     token?: string,
     method?: string,
   ): Promise<T> {
+    if (demoMode) throw new ApiError(400, "DEMO_ONLY", "En modo demostración no se realizan solicitudes a la API.");
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     try {

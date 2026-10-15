@@ -8,12 +8,14 @@ import React, {
 import { AppState } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
+import { demoMode } from "./mode";
+import { createDemoApi, createDemoStorage } from "./demo";
 import { SessionManager } from "./session";
 const Context = createContext<SessionManager | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [manager] = useState(
     () =>
-      new SessionManager(api, {
+      new SessionManager(demoMode ? createDemoApi() : api, demoMode ? createDemoStorage() : {
         getItem: SecureStore.getItemAsync,
         setItem: SecureStore.setItemAsync,
         deleteItem: SecureStore.deleteItemAsync,

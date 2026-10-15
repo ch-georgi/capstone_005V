@@ -1,4 +1,5 @@
 import React from "react";
+import { demoMode } from "./auth/mode";
 import {
   ActivityIndicator,
   Image,
@@ -40,7 +41,10 @@ export function Screen({ children }: { children: React.ReactNode }) {
             contentContainerStyle={styles.screen}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.content}>{children}</View>
+            <View style={styles.content}>
+              {demoMode ? <Badge>Modo demostración · Datos ficticios</Badge> : null}
+              {children}
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

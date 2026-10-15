@@ -6,6 +6,10 @@ const cwd = resolve(import.meta.dirname, "..");
 process.env.NODE_ENV ??= "production";
 createRequire(import.meta.url)("@expo/env").load(cwd);
 const production = process.argv.includes("--production");
+const demo = process.argv.includes("--demo");
+if (demo && production) throw new Error("Elige demo o producción, no ambos.");
+if (demo) process.env.WELLQ_DEMO_MODE = "true";
+if (production) process.env.WELLQ_DEMO_MODE = "false";
 if (production) {
   const envFile = resolve(cwd, ".env.production.local");
   if (existsSync(envFile)) process.loadEnvFile(envFile);
@@ -21,7 +25,7 @@ if (production) {
   process.env.WELLQ_APP_ENV = "development";
 }
 if (process.argv.includes("--check-config")) {
-  console.log(`Entorno: ${process.env.WELLQ_APP_ENV}; API: ${process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:3000/api/v1"}`);
+  console.log(`Entorno: ${process.env.WELLQ_APP_ENV}; demo: ${process.env.WELLQ_DEMO_MODE === "true"}; API: ${process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:3000/api/v1"}`);
   process.exit(0);
 }
 if (!process.env.ANDROID_HOME && process.env.LOCALAPPDATA)
@@ -79,7 +83,7 @@ gradle(gradleArgs);
 const output = resolve(native, "app/build/outputs/apk/release/app-release.apk");
 if (!existsSync(output)) throw new Error("No se encontrÃ³ el APK de salida");
 mkdirSync(resolve(cwd, "artifacts"), { recursive: true });
-const filename = production ? "wellq-0.1.0-production.apk" : "wellq-0.1.0-preview.apk";
+const filename = process.env.WELLQ_DEMO_MODE === "true" ? "wellq-0.1.0-demo.apk" : production ? "wellq-0.1.0-production.apk" : "wellq-0.1.0-preview.apk";
 copyFileSync(output, resolve(cwd, "artifacts", filename));
 console.log(
   `APK: apps/mobile/artifacts/${filename} (firma de desarrollo)`,

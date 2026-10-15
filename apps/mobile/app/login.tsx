@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Alert } from "react-native";
 import { router } from "expo-router";
+import { demoMode } from "../src/auth/mode";
+import { DEMO_EMAIL, DEMO_PASSWORD } from "../src/auth/demo";
 import { useAuth } from "../src/auth/context";
 import {
   Badge,
@@ -44,6 +46,7 @@ export default function Login() {
       <Copy muted>
         Accede a tu espacio de paciente y mantente conectado con tu clínica.
       </Copy>
+      {demoMode ? <Copy muted>Cuenta de prueba: {DEMO_EMAIL}{"\n"}Contraseña: {DEMO_PASSWORD}</Copy> : null}
       <Field
         label="Correo electrónico"
         value={email}
@@ -81,7 +84,9 @@ export default function Login() {
       />
       <Link
         title="Olvidé mi contraseña"
-        onPress={() => router.push("/recovery")}
+        onPress={() => demoMode
+          ? Alert.alert("Modo demostración", "No se envían correos ni se cambian contraseñas. Ingresa con la cuenta de prueba que aparece en esta pantalla.")
+          : router.push("/recovery")}
       />
       <Link
         title="¿No tienes cuenta? Solicita acceso a tu clínica"

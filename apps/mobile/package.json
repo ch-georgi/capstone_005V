@@ -28,6 +28,8 @@
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.2",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.6",
     "typescript": "~6.0.3"
@@ -43,7 +45,9 @@
     "apk:preview": "node scripts/build-android.mjs",
     "apk": "node scripts/build-android.mjs --production",
     "apk:production": "node scripts/build-android.mjs --production",
-    "check:production": "node scripts/build-android.mjs --production --check-config"
+    "check:production": "node scripts/build-android.mjs --production --check-config",
+    "apk:demo": "node scripts/build-android.mjs --demo",
+    "lint": "expo lint"
   },
   "private": true
 }

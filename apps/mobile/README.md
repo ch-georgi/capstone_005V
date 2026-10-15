@@ -59,3 +59,36 @@ Las capturas y resultados del recorrido están en `evidence/`. Para repetir el r
 La vista web usa la API local con `npm run web`; `WELLQ_WEB_API_URL` permite cambiar su dirección (por defecto localhost:3000/api/v1). El comando `npm run apk` exige `WELLQ_PRODUCTION_API_URL` en `.env.production.local` y genera un APK que consume la API HTTPS desplegada. `apk:preview` conserva el entorno de desarrollo. PostgreSQL se configura exclusivamente en el servidor API.
 
 Ver [configuración y despliegue en Railway](../api/RAILWAY.md). La base remota por sí sola no basta: primero hay que desplegar la API.
+
+## Mockup sin backend: activar y desactivar
+
+Para presentar login y bienvenida sin API, PostgreSQL ni internet, editar `apps/mobile/.env`:
+
+```env
+WELLQ_DEMO_MODE=true
+```
+
+Se activó este ajuste en el entorno local de Christopher. La plantilla `.env.example` conserva `false` por defecto para otros entornos. Reiniciar Expo limpiando su caché:
+
+```powershell
+npm.cmd start --prefix apps/mobile -- --clear
+# O para vista web:
+npm.cmd run web --prefix apps/mobile -- --clear
+```
+
+Credenciales ficticias, visibles también en el login:
+
+- Correo: `demo@wellq.app`
+- Contraseña: `WellQDemo123!`
+
+El acceso lleva directamente a «Hola, Christopher», en «Clínica WellQ Demo». Las pantallas muestran «Modo demostración · Datos ficticios». El correo se normaliza; la contraseña debe coincidir exactamente. Cerrar sesión devuelve al login. La sesión demo vive solo en memoria: al cerrar completamente la app o recargar la página se inicia otra presentación desde el login. No se leen ni sobrescriben credenciales reales guardadas en SecureStore. No hay llamadas de API, envíos de correo ni cambios de contraseña en este modo.
+
+Para **desactivar** el mockup y volver a autenticación real, cambiar a `WELLQ_DEMO_MODE=false` y reiniciar Expo con `--clear`. Para **reactivarlo**, volver a `true` y reiniciar. La URL de la API sigue configurándose como se describe arriba y solo se usa cuando demo está desactivado.
+
+Para un **APK autónomo de demostración**:
+
+```powershell
+npm.cmd run apk:demo --prefix apps/mobile
+```
+
+Salida: `apps/mobile/artifacts/wellq-0.1.0-demo.apk`, con firma de desarrollo. Este comando fuerza demo incluso si el `.env` dice false. Para otro APK con autenticación real de desarrollo, poner false y usar `apk:preview`. El comando `apk` / `apk:production` siempre desactiva demo y exige la URL HTTPS de producción. Un APK instalado no cambia al editar el `.env`: hay que recompilar y reinstalar. Las credenciales demo no existen en el backend ni otorgan acceso real.
