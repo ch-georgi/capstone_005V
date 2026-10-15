@@ -1,6 +1,6 @@
 # API WellQ: usuarios, login y Swagger
 
-Esta entrega implementa PB-016, PB-017, PB-019 y PB-020. La documentación local
+La API implementa PB-016, PB-017, PB-019 y PB-020, y añade sesiones móviles renovables (PB-018), selección de clínica y recuperación por correo. La documentación local
 adelanta PB-104; Swagger desplegado (PB-094) sigue pendiente de despliegue.
 Las carpetas para clínicas, pacientes, exámenes, versiones, storage, auditoría,
 sync, cargas y trabajos están preparadas con `.gitkeep`, sin funcionalidades.
@@ -133,7 +133,7 @@ los endpoints clínicos futuros deben además verificar la propiedad del recurso
 Cuenta pendiente sin contraseña no autentica. Un paciente nuevo sin ficha activa
 puede iniciar sesión con membresía activa, pero no obtiene escritura documental.
 
-No hay refresh ni logout todavía (PB-018): para renovar, iniciar sesión otra vez.
+Android dispone de sesión renovable, logout y recuperación por correo. Ver [autenticación móvil](MOBILE_AUTH.md). El login descrito arriba conserva su contrato original y no emite refresh token.
 
 Errores uniformes: `{ "statusCode": 403, "code": "FORBIDDEN", "message": "..." }`.
 
@@ -177,3 +177,9 @@ verificación OpenAPI e integración contra PostgreSQL temporal.
 Para trabajar en equipo: infraestructura → bootstrap → login → guards/contexto
 → creación → documentación y pruebas. Mantener DTO, OpenAPI y casos de aceptación
 actualizados junto a cada endpoint. Swagger local no implica API desplegada.
+
+## Aplicación Android
+
+Ver [contratos de sesión y recuperación](MOBILE_AUTH.md) y [guía de la app](../mobile/README.md). Swagger incluye todas las rutas móviles y esquemas de respuesta.
+
+Para separar desarrollo local y el APK conectado a Railway, ver [guía de despliegue y entornos](RAILWAY.md).

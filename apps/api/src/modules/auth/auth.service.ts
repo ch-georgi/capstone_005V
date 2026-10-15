@@ -27,8 +27,8 @@ export class AuthService {
     const session: SessionClaims = input.clinicId
       ? { sub: user.id, context: 'TENANT', clinicId: input.clinicId }
       : { sub: user.id, context: 'GLOBAL' };
-    await this.contexts.resolve(session);
-    return { accessToken: await this.jwt.signAsync(session), tokenType: 'Bearer', expiresIn: 900 };
+    await this.contexts.resolve({ ...session, credentialsVersion: user.credentialsVersion ?? 0 });
+    return { accessToken: await this.jwt.signAsync({ ...session, credentialsVersion: user.credentialsVersion ?? 0 }), tokenType: 'Bearer', expiresIn: 900 };
   }
 
   /**

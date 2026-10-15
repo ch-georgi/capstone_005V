@@ -1,10 +1,10 @@
 # =====================================================================
-# .gitignore raíz — cubre TODO el monorepo (apps/api, apps/web,
+# .gitignore raÃ­z â€” cubre TODO el monorepo (apps/api, apps/web,
 # apps/mobile, packages/, infrastructure/, etc.), no solo apps/api.
 # =====================================================================
 
-# Variables de entorno (credenciales reales) — nunca se suben.
-# El .env.example de cada app sí se sube, sin valores reales.
+# Variables de entorno (credenciales reales) â€” nunca se suben.
+# El .env.example de cada app sÃ­ se sube, sin valores reales.
 .env
 .env.local
 .env.*.local
@@ -29,7 +29,7 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Configuración local de VS Code que no debe compartirse
+# ConfiguraciÃ³n local de VS Code que no debe compartirse
 .vscode/*
 !.vscode/extensions.json
 
@@ -39,10 +39,21 @@ Thumbs.db
 # Prisma: el cliente generado no se versiona (se regenera con prisma generate)
 **/generated/prisma/
 
-# Certificados o claves que pudieran agregarse más adelante
+# Certificados o claves que pudieran agregarse mÃ¡s adelante
 *.pem
 *.key
 *.crt
 .cache/
 __pycache__/
 *.pyc
+
+# Expo and generated native projects
+**/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+**/coverage/
+*.hprof
+apps/mobile/artifacts/
+
+# Evitar versionar configuraciones de producción con secretos.
+.env.production

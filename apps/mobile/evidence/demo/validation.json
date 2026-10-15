@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-15",
+  "device": "Android 15 emulator",
+  "airplaneMode": true,
+  "demoLogin": true,
+  "welcome": true,
+  "logout": true,
+  "restartReturnsToLogin": true,
+  "apiRequired": false,
+  "mobileTests": 32,
+  "environmentTests": 2,
+  "lint": "passed",
+  "typecheck": "passed",
+  "apk": "wellq-0.1.0-demo.apk",
+  "sha256": "83c5107877cf2aca7fe8b80bdc68dd8d8486416d696719bbab9ead26a7d4fe26"
+}

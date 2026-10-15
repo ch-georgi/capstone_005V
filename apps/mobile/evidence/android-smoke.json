@@ -1,0 +1,10 @@
+{
+  "device": "Android 15 emulator x86_64",
+  "realApiPort": 3101,
+  "login": true,
+  "twoAuthorizedClinics": true,
+  "welcome": true,
+  "restartRestoresWithoutCredentials": true,
+  "logout": true,
+  "recoveryScreen": true
+}

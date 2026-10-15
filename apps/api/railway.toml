@@ -1,0 +1,9 @@
+# Configurar el servicio Railway con Root Directory: /apps/api.
+[build]
+builder = "RAILPACK"
+buildCommand = "npm ci --include=dev && npm run db:generate && npm run build"
+
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
