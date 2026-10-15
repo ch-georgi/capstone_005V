@@ -8,6 +8,7 @@ REVOKE ALL ON ALL TABLES IN SCHEMA public FROM wellq_app;
 GRANT SELECT ON clinics,users,user_clinics,patients,exam_types,exams,exam_versions,audit_logs,refresh_tokens,idempotency_records,sync_changes,storage_deletion_jobs TO wellq_app;
 GRANT INSERT,UPDATE ON clinics,users,user_clinics,patients,exam_types,exams,refresh_tokens TO wellq_app;
 GRANT INSERT ON exam_versions,audit_logs,idempotency_records TO wellq_app;
+GRANT SELECT,INSERT,UPDATE ON auth_sessions,auth_challenges,auth_rate_limits TO wellq_app;
 GRANT EXECUTE ON FUNCTION purge_exam(uuid,uuid) TO wellq_app;
 -- No DELETE/TRUNCATE, no direct sync writes, no edits of versions/audits/results.
 -- Application login must not own these tables or inherit the migration owner.

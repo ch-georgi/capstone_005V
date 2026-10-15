@@ -1,9 +1,9 @@
 import { TenantRole } from '@prisma/client';
 import { Request } from 'express';
 
-export type SessionClaims =
+export type SessionClaims = { credentialsVersion?: number; sid?: string } & (
   | { sub: string; context: 'GLOBAL' }
-  | { sub: string; context: 'TENANT'; clinicId: string };
+  | { sub: string; context: 'TENANT'; clinicId: string });
 export interface GlobalAdminContext { kind: 'GLOBAL'; actorId: string }
 export interface TenantContext {
   kind: 'TENANT'; actorId: string; clinicId: string; role: TenantRole;
