@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "WellQ",
+    "slug": "wellq-mobile",
+    "version": "0.1.0",
+    "scheme": "wellq",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/wellq-logo.png",
+    "splash": {
+      "image": "./assets/wellq-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "android": {
+      "package": "com.wellq.capstone",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/wellq-logo.png",
+        "backgroundColor": "#000000"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 29
+          }
+        }
+      ],
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/wellq-logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#000000"
+        }
+      ],
+      "./plugins/with-wellq-icon.cjs"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

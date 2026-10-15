@@ -11,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - wellq_postgres_data:/var/lib/postgresql/data
+  mailpit:
+    image: axllent/mailpit:v1.27.8
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
   minio:
     # Community build from MinIO sources; pinned for reproducible local development.
     image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z

@@ -6,6 +6,9 @@ import { AuthenticationGuard } from '../../common/guards/authentication.guard';
 import { ContextGuard } from '../../common/guards/context.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AuthController } from './auth.controller';
+import { MobileAuthController } from './mobile-auth.controller';
+import { MobileAuthService } from './mobile-auth.service';
+import { MailService } from './mail.service';
 import { AuthService } from './auth.service';
 import { ContextService } from './context.service';
 import { PasswordService } from './password.service';
@@ -18,8 +21,8 @@ import { PasswordService } from './password.service';
       verifyOptions: { algorithms: ['HS256'], issuer: config.getOrThrow<string>('JWT_ISSUER'), audience: config.getOrThrow<string>('JWT_AUDIENCE') },
     }),
   })],
-  controllers: [AuthController],
-  providers: [AuthService, ContextService, PasswordService,
+  controllers: [AuthController, MobileAuthController],
+  providers: [MobileAuthService, MailService, AuthService, ContextService, PasswordService,
     { provide: APP_GUARD, useClass: AuthenticationGuard },
     { provide: APP_GUARD, useClass: ContextGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard }],

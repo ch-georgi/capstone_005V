@@ -12,7 +12,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(200)
-  @ApiOperation({ operationId: 'login', summary: 'Iniciar sesión global o clínica', description: 'El JWT queda vinculado a la clínica elegida. Cambiar de clínica requiere otro login. Personal inactivo no obtiene sesión clínica; pacientes con ficha histórica conservan lectura propia, sin escritura. No hay refresh ni logout en esta entrega.' })
+  @ApiOperation({ operationId: 'login', summary: 'Iniciar sesión global o clínica', description: 'El JWT queda vinculado a la clínica elegida. Cambiar de clínica requiere otro login. Personal inactivo no obtiene sesión clínica; pacientes con ficha histórica conservan lectura propia, sin escritura. Para Android utilizar /auth/mobile/login y las rutas de sesión renovable; este login conserva su contrato original.' })
   @ApiResponse({ status: 200, type: LoginResponseDto })
   @ApiResponse({ status: 400, type: ApiErrorDto, description: 'Datos inválidos o CLINIC_REQUIRED.' })
   @ApiResponse({ status: 401, type: ApiErrorDto, description: 'INVALID_CREDENTIALS: email o contraseña incorrectos, incluida cuenta pendiente.' })

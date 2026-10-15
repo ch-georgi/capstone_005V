@@ -68,6 +68,7 @@ model Clinic {
   syncRevision BigInt               @default(0) @map("sync_revision")
   createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime             @default(now()) @map("updated_at") @db.Timestamptz(3)
+  authSessions AuthSession[]
   userClinics  UserClinic[]
   exams        Exam[]
   auditLogs    AuditLog[]
@@ -91,6 +92,9 @@ model User {
   deletedPatients Patient[]           @relation("PatientDeleter")
   versions        ExamVersion[]
   auditLogs       AuditLog[]
+  credentialsVersion Int @default(0) @map("credentials_version")
+  authSessions AuthSession[]
+  authChallenges AuthChallenge[]
   refreshTokens   RefreshToken[]
   idempotency     IdempotencyRecord[]
 
@@ -226,6 +230,8 @@ model AuditLog {
 model RefreshToken {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String    @map("user_id") @db.Uuid
+  sessionId String? @map("session_id") @db.Uuid
+  session AuthSession? @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   tokenHash String    @unique @map("token_hash") @db.VarChar(64)
   expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
   revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
@@ -286,4 +292,38 @@ model StorageDeletionJob {
 
   @@index([status, nextAttemptAt])
   @@map("storage_deletion_jobs")
+}
+
+model AuthSession {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  clinicId String @map("clinic_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  refreshTokens RefreshToken[]
+  @@index([userId, revokedAt])
+  @@map("auth_sessions")
+}
+model AuthChallenge {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String? @map("user_id") @db.Uuid
+  purpose String
+  secretHash String @map("secret_hash") @db.VarChar(64)
+  credentialsVersion Int @map("credentials_version")
+  attempts Int @default(0)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  @@index([userId, purpose])
+  @@map("auth_challenges")
+}
+model AuthRateLimit {
+  key String @id
+  count Int
+  resetAt DateTime @map("reset_at") @db.Timestamptz(3)
+  @@map("auth_rate_limits")
 }

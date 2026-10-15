@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-15",
+  "apiUnitTests": 14,
+  "apiIntegrationTests": 32,
+  "mobileTests": 27,
+  "sqlitePythonTests": 21,
+  "sqliteTypescriptTests": 7,
+  "postgresScenarios": 10,
+  "smtp": {
+    "smtp": "Mailpit local",
+    "recovery": "passed",
+    "oldSessionRevoked": true,
+    "newPasswordLogin": true,
+    "logout": true
+  },
+  "android": {
+    "device": "Android 15 emulator x86_64",
+    "realApiPort": 3101,
+    "login": true,
+    "twoAuthorizedClinics": true,
+    "welcome": true,
+    "restartRestoresWithoutCredentials": true,
+    "logout": true,
+    "recoveryScreen": true
+  },
+  "apk": {
+    "version": "0.1.0",
+    "apiUrl": "http://10.0.2.2:3101/api/v1",
+    "bytes": 88078376,
+    "sha256": "55b4e2d423243b5c979aa1109bfabf465c3b9fa494770466d5fd2e28c582d42e"
+  },
+  "physicalDeviceTest": "pending: no physical device connected"
+}
