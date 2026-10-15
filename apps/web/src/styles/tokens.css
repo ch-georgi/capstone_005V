@@ -1,0 +1,67 @@
+/* Tokens de diseño WellQ — ver paleta de referencia aprobada.
+   Modo claro por defecto; modo oscuro sigue el tema del sistema o [data-theme]. */
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --surface-sunken: #f0f0f2;
+  --border: #e3e3e7;
+  --text: #18181b;
+  --text-muted: #6b6e76;
+
+  --teal: #0ea99d;
+  --teal-ink: #ffffff;
+  --green: #1f9d5c;
+  --orange: #d9700f;
+  --red: #d93a58;
+  --blue: #2563eb;
+  --purple: #8530d8;
+
+  --shadow: 0 1px 2px rgba(20, 20, 24, 0.04), 0 8px 24px -12px rgba(20, 20, 24, 0.12);
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 18px;
+
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0c0f;
+    --surface: #17181c;
+    --surface-sunken: #0f1013;
+    --border: #27282e;
+    --text: #f2f3f5;
+    --text-muted: #94969c;
+
+    --teal: #22d3c7;
+    --teal-ink: #06211f;
+    --green: #3fc878;
+    --orange: #f7923c;
+    --red: #f2607a;
+    --blue: #5b8ff8;
+    --purple: #a368f0;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0c0f;
+  --surface: #17181c;
+  --surface-sunken: #0f1013;
+  --border: #27282e;
+  --text: #f2f3f5;
+  --text-muted: #94969c;
+
+  --teal: #22d3c7;
+  --teal-ink: #06211f;
+  --green: #3fc878;
+  --orange: #f7923c;
+  --red: #f2607a;
+  --blue: #5b8ff8;
+  --purple: #a368f0;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+}

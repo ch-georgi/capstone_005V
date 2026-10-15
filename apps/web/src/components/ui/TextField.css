@@ -1,0 +1,50 @@
+.field {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-size: 14.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.field input::placeholder {
+  color: var(--text-muted);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 24%, transparent);
+}
+
+.field-error input,
+.field-error select {
+  border-color: var(--red);
+}
+
+.field-msg {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+
+.field-msg-error {
+  color: var(--red);
+}
