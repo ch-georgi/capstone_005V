@@ -18,7 +18,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const detail = typeof payload === 'object' && payload !== null ? payload as Record<string, unknown> : {};
     const defaults: Record<number, string> = {
       400: 'VALIDATION_ERROR', 401: 'UNAUTHORIZED', 403: 'FORBIDDEN',
-      404: 'NOT_FOUND', 409: 'CONFLICT',
+      404: 'NOT_FOUND', 409: 'CONFLICT', 413: 'PAYLOAD_TOO_LARGE', 415: 'UNSUPPORTED_MEDIA_TYPE',
     };
     const message = typeof detail.message === 'string' ? detail.message
       : Array.isArray(detail.message) ? detail.message.join('; ')

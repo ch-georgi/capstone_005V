@@ -18,6 +18,16 @@ export function validateEnvironment(env: Record<string, unknown>) {
   if (swagger !== undefined && swagger !== 'true' && swagger !== 'false') {
     throw new Error('SWAGGER_ENABLED must be true or false');
   }
+  // Almacenamiento S3/MinIO: opcional (la API arranca sin él y las rutas de archivos responden 503),
+  // pero si se configura una variable deben estar todas las obligatorias.
+  const s3Keys = ['S3_ENDPOINT', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'];
+  if (s3Keys.some((key) => typeof env[key] === 'string' && (env[key] as string).trim())) {
+    s3Keys.forEach(required);
+    try {
+      const endpoint = new URL(env.S3_ENDPOINT as string);
+      if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.pathname !== '/' || endpoint.search || endpoint.hash) throw new Error();
+    } catch { throw new Error('S3_ENDPOINT must be an http(s) origin without path or query'); }
+  }
   return {
     ...env, DATABASE_URL: databaseUrl, JWT_SECRET: secret, JWT_ISSUER: issuer,
     JWT_AUDIENCE: audience, PORT: port,

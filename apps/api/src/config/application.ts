@@ -11,6 +11,8 @@ export function createOpenApiDocument(app: INestApplication) {
     .addTag('Users', 'Creación controlada de cuentas y membresías.')
     .addTag('Patients', 'Fichas de pacientes por clínica.')
     .addTag('Audit', 'Registro y consulta de auditoría clínica.')
+    .addTag('Uploads', 'Carga idempotente de exámenes y nuevas versiones (multipart).')
+    .addTag('Exam files', 'Descarga y visualización de archivos de una versión, con auditoría.')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build());
   for (const name of ['CreateUserDto', 'LoginDto', 'CreatePatientDto', 'UpdatePatientDto']) {

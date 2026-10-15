@@ -2,8 +2,8 @@
 
 Esta entrega implementa PB-016, PB-017, PB-019 y PB-020. La documentación local
 adelanta PB-104; Swagger desplegado (PB-094) sigue pendiente de despliegue.
-Las carpetas para clínicas, pacientes, exámenes, versiones, storage, auditoría,
-sync, cargas y trabajos están preparadas con `.gitkeep`, sin funcionalidades.
+Pacientes, auditoría y la carga/descarga de exámenes ya están implementados; las carpetas de
+clínicas, exámenes (listados), sync y trabajos siguen con `.gitkeep`.
 
 ## Preparar y arrancar
 
@@ -28,6 +28,7 @@ Completar `apps/api/.env` sin versionarlo:
 | `JWT_AUDIENCE` | Audiencia obligatoria; ejemplo local: `wellq-clients`. |
 | `PORT` | Puerto, 3000 por defecto. |
 | `SWAGGER_ENABLED` | `true`/`false`; por defecto desactivado en producción y activado en otros entornos. |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | Almacenamiento de documentos (MinIO local: ver DESARROLLO_LOCAL.md). Opcionales para arrancar, pero si defines una deben estar las cuatro; sin ellas, las rutas de archivos responden `503 STORAGE_NOT_CONFIGURED`. `S3_REGION` es opcional (`us-east-1`). |
 | `BOOTSTRAP_ADMIN_EMAIL` | Email del superadmin inicial; solo para el comando bootstrap. |
 | `BOOTSTRAP_ADMIN_PASSWORD` | Contraseña inicial de 12–128 caracteres; solo para bootstrap. |
 
@@ -99,6 +100,9 @@ Ejemplo sintético de creación (la contraseña es solo para demostración):
 | `POST /api/v1/auth/login` | 200, `accessToken`, `tokenType`, `expiresIn: 900` | Pública; email, password y clínica salvo superadmin global. |
 | `POST /api/v1/users` | 201, cuenta y membresía | Administrador activo de la clínica vinculada al JWT. |
 | `POST /api/v1/clinics/:clinicId/users` | 201, cuenta y membresía | Superadmin con JWT GLOBAL; clínica destino existente y activa. |
+| `POST /api/v1/exams/uploads` | 201 (nueva) o 200 (`replayed:true`), `{examId, versionId, versionNumber, replayed}` | Cualquier rol con escritura sobre el paciente (ver «Carga y descarga»). |
+| `GET /api/v1/exams/:examId/versions/:versionId/download` | 200, archivo como adjunto | Quien pueda leer al paciente: personal de la clínica o el propio paciente. Audita `DOWNLOAD`. |
+| `GET /api/v1/exams/:examId/versions/:versionId/view` | 200, archivo en línea | Igual que la descarga. Audita `VIEW`. |
 
 Cada creación recibe email, contraseña, nombre de presentación y rol.
 Administradores clínicos y globales pueden asignar `CLINIC_ADMIN`, `CLINICIAN`
@@ -144,7 +148,60 @@ Errores uniformes: `{ "statusCode": 403, "code": "FORBIDDEN", "message": "..." }
 | 403 | `FORBIDDEN`, `TENANT_FORBIDDEN`, `TENANT_INACTIVE` |
 | 404 | `CLINIC_NOT_FOUND`, `NOT_FOUND` |
 | 409 | `EMAIL_DUPLICATE` |
+| 400 (carga) | `REQUEST_REQUIRED`, `INVALID_REQUEST_JSON`, `FILE_REQUIRED`, `CLINIC_MISMATCH`, `FILE_SIZE_MISMATCH`, `FILE_HASH_MISMATCH`, `MIME_TYPE_MISMATCH`, `INVALID_EXAM_DATE` |
+| 404 (archivos) | `PATIENT_NOT_FOUND`, `EXAM_NOT_FOUND`, `EXAM_TYPE_NOT_FOUND`, `EXAM_VERSION_NOT_FOUND` |
+| 409 (carga) | `IDEMPOTENCY_CONFLICT`, `EXAM_ID_CONFLICT`, `VERSION_ID_CONFLICT`, `STORAGE_KEY_CONFLICT`, `RESOURCE_ID_CONFLICT`, `EXAM_TYPE_INACTIVE` |
+| 413 / 415 | `PAYLOAD_TOO_LARGE` / `FILE_TOO_LARGE`, `UNSUPPORTED_FILE_TYPE` |
+| 502 / 503 | `STORAGE_OBJECT_MISSING`, `STORAGE_INTEGRITY_ERROR`, `STORAGE_ERROR` / `STORAGE_UNAVAILABLE`, `STORAGE_NOT_CONFIGURED` |
 | 500 | `INTERNAL_ERROR` sin detalles de base de datos ni secretos |
+
+## Carga y descarga de exámenes (PB-034 a 039, 041, 042, 063, 064, 072 a 075)
+
+`POST /api/v1/exams/uploads` es `multipart/form-data` con dos campos, según el
+[contrato de datos](../../database/contracts/README.md): `request` (texto JSON con el
+`UploadEnvelope` de `database/contracts/types.ts`) y `file` (PDF, JPEG o PNG de 1 a
+10.000.000 bytes). Una sola ruta cubre las dos operaciones:
+
+| `operation` | Efecto | Campos obligatorios en `payload` |
+|---|---|---|
+| `CREATE_EXAM_WITH_VERSION` | Crea el examen y su versión 1. Audita `CREATE`. | `patientId`, `examId`, `versionId`, `title`, `examDate` (YYYY-MM-DD), `examTypeId` |
+| `UPLOAD_VERSION` | Agrega la versión siguiente (numeración automática bajo bloqueo). Audita `NEW_VERSION`. | `patientId`, `examId`, `versionId` y **nada más** (no admite título, fecha ni tipo) |
+
+Reglas que aplica el backend (no confía en lo que declara el cliente):
+
+- El tipo real se detecta por los primeros bytes; tamaño y SHA-256 se recalculan y deben coincidir con el sobre. `sha256` va en minúsculas y los UUID en minúsculas.
+- `clinicId` del sobre debe ser el de la sesión (JWT). Opcionales ausentes se **omiten**; no se envían como `null`.
+- Autorización: el paciente debe ser de la clínica del JWT y el actor debe poder escribir sobre él (`can_write_patient`): personal activo de la clínica, o el propio paciente sobre sus exámenes. Si no, `404` (sin revelar existencia).
+- **Idempotencia** por usuario + clínica + `operationId`: misma huella → `200` con el resultado guardado y `replayed:true`; otra huella → `409 IDEMPOTENCY_CONFLICT`. Si falla antes del commit (almacenamiento caído, corte), se reintenta con **los mismos UUID**.
+- Nunca se sobrescribe un objeto: la clave `clinics/{clinicId}/patients/{patientId}/exams/{examId}/versions/{versionId}` solo se reutiliza si contiene byte a byte la misma carga de una operación interrumpida. Un `versionId`/`examId` ya usado (incluso purgado) → `409`.
+- Examen, versión, auditoría y registro de idempotencia se confirman juntos; ante un fallo posterior a la subida, el objeto recién creado se elimina. Deadlocks o fallos de serialización se reintentan hasta 3 veces.
+
+Descarga y visualización devuelven los bytes con `Cache-Control: private, no-store`,
+`X-Content-Type-Options: nosniff` y `Content-Disposition` (`attachment` o `inline`).
+Antes de responder se verifican tamaño y SHA-256 contra el registro (`502
+STORAGE_INTEGRITY_ERROR` si no coinciden) y **solo entonces** se registra `DOWNLOAD`/`VIEW`
+con el `examVersionId`. Un examen eliminado, de otra clínica o de otro paciente responde `404`.
+
+Pendiente en este módulo: listar exámenes y versiones (PB-031, 032, 065), editar metadatos
+(PB-033), eliminación lógica (PB-068) y el trabajador que concilia/borra objetos huérfanos y
+purgas. Hoy, si una carga falla *después* de subir el objeto y el servidor cae antes de
+limpiarlo, el objeto queda huérfano hasta que exista ese trabajador.
+
+### Probarlo con tu MinIO local
+
+Con Docker, la API y `db:fixtures` ya levantados (ver DESARROLLO_LOCAL.md):
+
+```powershell
+$env:SMOKE_EMAIL = 'admin1@example.com'
+$env:SMOKE_PASSWORD = 'Demo1234!'
+npm.cmd run smoke:exam-files --prefix apps/api
+```
+
+El script inicia sesión, sube `database/fixtures/documento-demo.pdf` a un paciente de esa
+clínica, repite la operación (idempotencia), descarga y visualiza comprobando que los bytes
+son idénticos, sube una versión 2 y lista la auditoría. Variables opcionales:
+`SMOKE_API_URL`, `SMOKE_CLINIC_ID`, `SMOKE_PATIENT_ID`, `SMOKE_EXAM_TYPE_ID`, `SMOKE_FILE`.
+Si no defines clínica, paciente o tipo, los toma de la base de desarrollo.
 
 ## Pruebas y CI
 
