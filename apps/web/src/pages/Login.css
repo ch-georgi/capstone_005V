@@ -1,0 +1,104 @@
+.login-page {
+  min-height: calc(100dvh - 64px);
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+}
+
+.login-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.login-form-wrap {
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.login-form-wrap h1 {
+  font-size: 24px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+
+.login-form-wrap .auth-sub {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0 0 24px;
+}
+
+.login-form-wrap form {
+  text-align: left;
+}
+
+.clinic-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.clinic-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.clinic-option:hover {
+  border-color: color-mix(in srgb, var(--teal) 50%, var(--border));
+}
+
+.clinic-option.selected {
+  border-color: var(--teal);
+  background: color-mix(in srgb, var(--teal) 10%, var(--surface-sunken));
+}
+
+.clinic-option input {
+  accent-color: var(--teal);
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.clinic-option-name {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.clinic-option-role {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.login-back {
+  display: block;
+  margin: 14px auto 0;
+  font-size: 13.5px;
+}
+
+.auth-foot {
+  margin-top: 18px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.auth-foot a {
+  color: var(--teal);
+  text-decoration: none;
+  font-weight: 600;
+}

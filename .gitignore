@@ -33,6 +33,9 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
+# Configuración local de Claude Code (proyecto educativo: no se versiona)
+.claude/
+
 # Prisma: el cliente generado no se versiona (se regenera con prisma generate)
 **/generated/prisma/
 

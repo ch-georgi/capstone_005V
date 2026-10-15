@@ -11,7 +11,7 @@ export function createOpenApiDocument(app: INestApplication) {
     .addTag('Users', 'Creación controlada de cuentas y membresías.')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build());
-  for (const name of ['CreateUserDto', 'LoginDto', 'EmailDto', 'MobileLoginDto', 'TokenDto', 'SelectClinicDto', 'SwitchClinicDto', 'VerifyCodeDto', 'ResetPasswordDto']) {
+  for (const name of ['CreateUserDto', 'LoginDto', 'VerifyClinicsDto', 'EmailDto', 'MobileLoginDto', 'TokenDto', 'SelectClinicDto', 'SwitchClinicDto', 'VerifyCodeDto', 'ResetPasswordDto']) {
     const schema = document.components?.schemas?.[name];
     if (schema && !('$ref' in schema)) schema.additionalProperties = false;
   }
@@ -22,6 +22,23 @@ export function configureApplication(app: INestApplication) {
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
   app.useGlobalFilters(new ApiExceptionFilter());
+  // Bearer JWT en Authorization, no cookies: no se necesitan credentials ni
+  // protección CSRF adicional.
+  const config = app.get(ConfigService);
+  const explicitOrigins = config.get<string[] | null>('CORS_ORIGINS');
+  const isProduction = config.get<string>('NODE_ENV') === 'production';
+  app.enableCors({
+    credentials: false,
+    origin: explicitOrigins
+      // CORS_ORIGINS configurada explícitamente: lista fija (requerido en producción).
+      ? explicitOrigins
+      : isProduction
+      // Producción sin CORS_ORIGINS: ningún origen hasta configurarla.
+      ? false
+      // Desarrollo sin configurar: cualquier puerto de localhost/127.0.0.1,
+      // porque Vite puede tomar un puerto distinto a 5173 si ese ya está ocupado.
+      : /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
+  });
   if (app.get(ConfigService).get<boolean>('SWAGGER_ENABLED')) {
     SwaggerModule.setup('api/docs', app, () => createOpenApiDocument(app), {
       jsonDocumentUrl: '/api/openapi.json', raw: ['json'],
