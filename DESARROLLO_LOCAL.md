@@ -6,8 +6,9 @@ ejecutan desde la raíz del repositorio, donde está `docker-compose.yml`.
 
 Actualmente el repositorio incluye persistencia, migraciones, scripts de
 validación y la API HTTP de usuarios/login. Completar esta guía deja listo el
-entorno de datos; continuar con [la guía de API y Swagger](apps/api/README.md)
-para configurar JWT, crear el superadmin y probar usuarios. Las interfaces
+entorno de datos y permite iniciar la API con Swagger. Consultar también
+[la guía de API y Swagger](apps/api/README.md) para crear el superadmin y probar
+usuarios. Las interfaces
 web/Android y los endpoints clínicos siguen pendientes.
 
 ## 1. Requisitos
@@ -17,7 +18,7 @@ web/Android y los endpoints clínicos siguen pendientes.
   En Windows se puede utilizar el backend WSL 2.
 - Node.js **22.13 o superior dentro de la versión 22**, con npm.
 - Internet para descargar imágenes Docker y dependencias npm la primera vez.
-- Puertos `5432`, `9222` y `9223` disponibles.
+- Puertos `3000` (API), `5432`, `9222` y `9223` disponibles.
 - Python 3.12 si se van a ejecutar las pruebas SQLite de Python.
 
 Comprueba las herramientas:
@@ -63,6 +64,31 @@ S3_REGION=us-east-1
 
 Son credenciales de desarrollo local. `.env` está excluido de Git; comparte
 `.env.example`, no el archivo de entorno personal. Usa solamente datos sintéticos.
+
+Para iniciar la API también son obligatorias las variables JWT. Genera un secreto
+aleatorio de 32 bytes en PowerShell:
+
+```powershell
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+```
+
+Copia el resultado en `apps/api/.env` y completa este bloque:
+
+```dotenv
+PORT=3000
+JWT_SECRET=REEMPLAZAR_CON_EL_RESULTADO_GENERADO
+JWT_ISSUER=wellq-api
+JWT_AUDIENCE=wellq-clients
+SWAGGER_ENABLED=true
+```
+
+Reemplaza el marcador de `JWT_SECRET` por el resultado generado. Si el archivo
+contiene `# JWT_SECRET=`, quita el `#`: una línea comentada no define la variable.
+Guarda el secreto para reutilizarlo entre arranques; no necesitas regenerarlo
+cada vez. Las variables de la terminal tienen precedencia sobre las del `.env`.
+
+`BOOTSTRAP_ADMIN_EMAIL` y `BOOTSTRAP_ADMIN_PASSWORD` solo hacen falta al ejecutar
+`bootstrap:admin`; no son necesarias para iniciar la API o abrir Swagger.
 
 El Compose actual define sus credenciales directamente en `environment`, por lo
 que **no requiere un `.env` en la raíz**. Editar `apps/api/.env` no cambia las
@@ -214,12 +240,38 @@ Debe terminar con `LISTO`. Detalle de la ruta y de sus reglas en
 Si la API responde `503 STORAGE_NOT_CONFIGURED`, falta alguna variable `S3_*` o hay que
 reiniciar la API después de editar el `.env`.
 
-## 8. Uso diario y persistencia
+## 8. Iniciar la API y abrir Swagger
+
+Con PostgreSQL en ejecución, las migraciones aplicadas y las variables del paso 2
+guardadas en `apps/api/.env`, inicia la API desde la raíz del repositorio:
+
+```powershell
+npm.cmd run start:dev --prefix apps/api
+```
+
+Mantén esa terminal abierta y accede desde el navegador:
+
+- [Swagger UI](http://localhost:3000/api/docs).
+- [Documento OpenAPI JSON](http://localhost:3000/api/openapi.json).
+
+Si cambiaste `PORT`, usa ese puerto en las direcciones. Swagger está habilitado
+por defecto fuera de producción; `SWAGGER_ENABLED=true` lo habilita explícitamente.
+Docker Compose inicia PostgreSQL y MinIO; la API se inicia con el comando npm anterior.
+
+Para probar rutas protegidas, sigue [el flujo de login de la guía de API](apps/api/README.md#probar-el-flujo-en-swagger):
+ejecuta `POST /api/v1/auth/login`, copia `accessToken` y pégalo en **Authorize**
+sin el prefijo `Bearer`.
+
+Para detener la API, usa `Ctrl+C`. Después de modificar el `.env`, detén el proceso
+y vuelve a ejecutar el comando de inicio para cargar la configuración actualizada.
+
+## 9. Uso diario y persistencia
 
 Para retomar el trabajo:
 
 ```powershell
 docker compose up -d
+npm.cmd run start:dev --prefix apps/api
 ```
 
 Después de recibir nuevas migraciones del equipo:
@@ -258,6 +310,9 @@ y sus datos. Usa la misma carpeta y el mismo nombre de proyecto Compose al retom
 | Puerto ocupado | Revisa si tienes otro PostgreSQL o MinIO local. Si cambias el puerto publicado del Compose, actualiza el `.env` y los comandos de acceso desde el equipo. |
 | PostgreSQL rechaza la contraseña | Comprueba que el `.env` coincida con el Compose. Cambiar `POSTGRES_PASSWORD` no modifica una base ya inicializada en un volumen existente. |
 | Prisma no encuentra `DATABASE_URL` | Verifica que el archivo se llame `apps/api/.env`, sin `.example` ni `.txt`. |
+| La API informa `JWT_SECRET is required` | Define `JWT_SECRET` en `apps/api/.env` sin `#` y con el secreto generado en el paso 2. Guarda el archivo y reinicia la API. |
+| La API informa `JWT_ISSUER is required` o `JWT_AUDIENCE is required` | Completa ambas variables según el paso 2 y reinicia la API. |
+| Swagger no abre | Confirma que la API esté ejecutándose, usa `/api/docs` en el puerto configurado y verifica `SWAGGER_ENABLED=true`. |
 | Seed falla en `auditLog.create()` con columna `new` | Comprueba que tu copia incluya la migración `20261005120000_fix_protect_audit` y ejecuta `db:migrate:deploy`. |
 | Fixtures informa variables faltantes | Usa el comando con `node --env-file=apps/api/.env` desde la raíz. |
 | Carga S3 responde `NoSuchBucket` | Crea `wellq-dev` con el paso 4 y comprueba `S3_BUCKET`. |

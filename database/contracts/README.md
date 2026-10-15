@@ -1,6 +1,6 @@
 # Contrato de datos y sincronización de WellQ
 
-Este documento es el contrato vigente de persistencia. La API NestJS ya implementa login, autorización por rol/contexto y creación controlada de usuarios; ver [la guía de API](../../apps/api/README.md). El cliente Android y los endpoints clínicos, de cargas/sync y trabajadores descritos a continuación siguen pendientes. Los esquemas, migraciones, triggers, helpers SQL, adaptadores SQLite y utilidades de firma/hash sí están implementados.
+Este documento es el contrato vigente de persistencia. La API NestJS ya implementa login, autorización por rol/contexto y creación controlada de usuarios; ver [la guía de API](../../apps/api/README.md). El cliente Android de acceso y bienvenida, sesiones renovables y recuperación por correo están implementados; ver [contrato de autenticación móvil](../../apps/api/MOBILE_AUTH.md). Los endpoints clínicos, de cargas/sync y trabajadores descritos a continuación siguen pendientes. Los esquemas, migraciones, triggers, helpers SQL, adaptadores SQLite y utilidades de firma/hash sí están implementados.
 
 ## Identidad y autorización
 

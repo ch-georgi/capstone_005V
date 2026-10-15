@@ -21,9 +21,11 @@ export class AuthenticationGuard implements CanActivate {
           !['GLOBAL', 'TENANT'].includes(String(payload.context)) ||
           (payload.context === 'GLOBAL' && payload.clinicId !== undefined) ||
           (payload.context === 'TENANT' && (typeof payload.clinicId !== 'string' || !isUUID(payload.clinicId)))) throw new Error();
-      req.session = (payload.context === 'GLOBAL'
+      if (payload.credentialsVersion !== undefined && (!Number.isInteger(payload.credentialsVersion) || Number(payload.credentialsVersion) < 0)) throw new Error();
+      if (payload.sid !== undefined && (typeof payload.sid !== 'string' || !isUUID(payload.sid))) throw new Error();
+      req.session = { ...(payload.context === 'GLOBAL'
         ? { sub: payload.sub, context: 'GLOBAL' }
-        : { sub: payload.sub, context: 'TENANT', clinicId: payload.clinicId }) as SessionClaims;
+        : { sub: payload.sub, context: 'TENANT', clinicId: payload.clinicId }), credentialsVersion: Number(payload.credentialsVersion ?? 0), ...(payload.sid ? { sid: String(payload.sid) } : {}) } as SessionClaims;
       return true;
     } catch { throw apiError(401, 'UNAUTHORIZED', 'Token inválido o vencido.'); }
   }

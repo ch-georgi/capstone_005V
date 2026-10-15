@@ -8,7 +8,9 @@ El alcance vigente está en [Propuesta de redefinición](Fase%201/Propuesta%20re
 
 Implementados: API NestJS con login JWT global/clínico, autorización por rol y clínica, creación transaccional de usuarios, bootstrap de superadmin y OpenAPI/Swagger; schemas PostgreSQL/Prisma y SQLite v2, migración inicial con constraints/triggers, protección de auditoría y purga, seed repetible, PDF sintético real, script de fixtures S3, adaptadores de migración/cola/sync local, firma de cursor y hash de solicitudes, suites de pruebas y workflow CI.
 
-Pendientes: refresh/logout, endpoints de clínicas/pacientes/exámenes/documentos y autorización de sus consultas, coordinador de cargas, endpoint sync, worker S3 y UI web/Android. Las carpetas futuras no implementan esos flujos. Guía del primer flujo y Swagger: [apps/api/README.md](apps/api/README.md).
+Implementado: acceso móvil con selección de clínica, sesiones de 30 días, recuperación por correo y pantallas Android. Ver [guía móvil](apps/mobile/README.md).
+
+Pendientes: endpoints de clínicas/pacientes/exámenes/documentos y autorización de sus consultas, coordinador de cargas, endpoint sync, worker S3 y UI web y gestión documental Android. Las carpetas futuras no implementan esos flujos. Guía del primer flujo y Swagger: [apps/api/README.md](apps/api/README.md).
 
 ## Modelo y privacidad
 

@@ -6,7 +6,7 @@ import { ApiExceptionFilter } from '../common/filters/api-error';
 export function createOpenApiDocument(app: INestApplication) {
   const document = SwaggerModule.createDocument(app, new DocumentBuilder()
     .setTitle('WellQ API').setVersion('0.1.0')
-    .setDescription('API académica multitenant. JWT clínico vinculado a clinicId; sesión GLOBAL solo para administración explícita. El superadmin no obtiene acceso clínico automático. Pacientes históricos conservan lectura propia. Refresh/logout pendientes (PB-018).')
+    .setDescription('API académica multitenant. JWT clínico vinculado a clinicId; sesión GLOBAL solo para administración explícita. El superadmin no obtiene acceso clínico automático. Pacientes históricos conservan lectura propia. Sesión Android renovable durante 30 días, selección de clínica y recuperación por correo.')
     .addTag('Auth', 'Login global o por clínica.')
     .addTag('Users', 'Creación controlada de cuentas y membresías.')
     .addTag('Patients', 'Fichas de pacientes por clínica.')
@@ -17,7 +17,7 @@ export function createOpenApiDocument(app: INestApplication) {
     .addTag('Exam files', 'Descarga y visualización de archivos de una versión, con auditoría.')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build());
-  for (const name of ['CreateUserDto', 'LoginDto', 'CreatePatientDto', 'UpdatePatientDto']) {
+  for (const name of ['CreateUserDto', 'LoginDto', 'EmailDto', 'MobileLoginDto', 'TokenDto', 'SelectClinicDto', 'SwitchClinicDto', 'VerifyCodeDto', 'ResetPasswordDto', 'CreatePatientDto', 'UpdatePatientDto']) {
     const schema = document.components?.schemas?.[name];
     if (schema && !('$ref' in schema)) schema.additionalProperties = false;
   }
