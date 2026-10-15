@@ -217,6 +217,22 @@ Filtros del listado: `limit` (1-100, por defecto 50), `offset`, `examTypeId` (UU
 
 Reglas: exámenes de otra clínica, eliminados o de pacientes que el actor no puede leer responden `404` (`PATIENT_NOT_FOUND` / `EXAM_NOT_FOUND`) sin revelar si existen. Las fechas imposibles dan `400 INVALID_DATE_FILTER` y `from > to` da `400 INVALID_DATE_RANGE`. `sizeBytes` es numérico. Nunca se exponen `storageKey` ni correos; el responsable se muestra con su `displayName` en la clínica. Consultar no genera auditoría: `VIEW` y `DOWNLOAD` se registran al abrir o descargar el archivo.
 
+### Editar y eliminar un examen (PB-033, PB-068 a 070)
+
+| Método y ruta | Qué hace |
+| --- | --- |
+| `PATCH /api/v1/exams/{examId}` | Edición parcial de `title`, `examDate`, `examTypeId`, `professionalName` y `notes`. Lo omitido no cambia; `professionalName` y `notes` aceptan `null` para borrarse. Devuelve el detalle actualizado (200). |
+| `DELETE /api/v1/exams/{examId}` | Eliminación **lógica** (204): marca fecha y actor, conserva versiones y archivos. |
+
+Reglas:
+- Pueden usarlas `CLINIC_ADMIN`, `CLINICIAN` y `PATIENT` con la misma regla de escritura de las cargas (`can_write_patient`); una sesión de solo lectura recibe `403`.
+- Examen inexistente, ya eliminado, de otra clínica o ilegible para el actor: `404 EXAM_NOT_FOUND`. Si el actor lo puede leer pero no modificar (p. ej. paciente inactivo): `403 EXAM_READ_ONLY`.
+- No se pueden cambiar el paciente, el autor ni los archivos (un archivo nuevo es una versión nueva con `POST /exams/uploads`).
+- `examTypeId` debe ser un tipo activo: `404 EXAM_TYPE_NOT_FOUND` / `409 EXAM_TYPE_INACTIVE`. Cuerpo vacío: `400 EMPTY_UPDATE`; fecha imposible: `400 INVALID_EXAM_DATE`; campos desconocidos: `400`.
+- Si los valores enviados son iguales a los actuales no se escribe, no se audita y no se emite sincronización.
+- Auditoría: `UPDATE` (con `metadata.changedFields`, solo nombres de campos) y `DELETE`, en la misma transacción que el cambio. Se bloquea primero la clínica y luego el examen, y se reintenta hasta 3 veces ante deadlock.
+- Tras eliminar, el examen desaparece de listados, detalle, descargas y nuevas versiones (`404`). La purga definitiva (`purge_exam`) es un proceso aparte, todavía no expuesto.
+
 ## Pruebas y CI
 
 ```powershell

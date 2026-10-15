@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AuditAction, Prisma, UploadOperation } from '@prisma/client';
 import { apiError } from '../../common/filters/api-error';
 import { requestHash } from '../../common/http/canonical-json';
+import { isTransient } from '../../common/http/transient-error';
 import { RequestInfo } from '../../common/http/request-info';
 import { TenantContext } from '../../common/types/auth-context';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -18,13 +19,6 @@ type StoredResult = { examId: string; versionId: string; versionNumber: number }
 const MAX_ATTEMPTS = 3;
 // Una transacción interactiva incluye la subida a S3 (≤ 10 MB): se amplía el límite por defecto de 5 s.
 const TX_OPTIONS = { maxWait: 5_000, timeout: 30_000 } as const;
-
-/** Deadlock / fallo de serialización: el contrato exige reintentar hasta tres veces con el mismo operationId. */
-function isTransient(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
-  const sqlState = String((error.meta as { code?: unknown } | undefined)?.code ?? '');
-  return error.code === 'P2034' || ['40001', '40P01'].includes(sqlState);
-}
 
 @Injectable()
 export class UploadsService {
