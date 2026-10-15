@@ -9,10 +9,12 @@ import { AuditModule } from './modules/audit/audit.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { ExamVersionsModule } from './modules/exam-versions/exam-versions.module';
+import { ExamTypesModule } from './modules/exam-types/exam-types.module';
+import { ExamsModule } from './modules/exams/exams.module';
 
 @Module({ imports: [
   ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
   PrismaModule, StorageModule, AuthModule, UsersModule, PatientsModule, AuditModule,
-  UploadsModule, ExamVersionsModule,
+  UploadsModule, ExamVersionsModule, ExamTypesModule, ExamsModule,
 ] })
 export class AppModule {}

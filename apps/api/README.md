@@ -203,6 +203,20 @@ son idénticos, sube una versión 2 y lista la auditoría. Variables opcionales:
 `SMOKE_API_URL`, `SMOKE_CLINIC_ID`, `SMOKE_PATIENT_ID`, `SMOKE_EXAM_TYPE_ID`, `SMOKE_FILE`.
 Si no defines clínica, paciente o tipo, los toma de la base de desarrollo.
 
+## Consulta de exámenes (PB-029, 031, 032, 065)
+
+Rutas de solo lectura, disponibles para `CLINIC_ADMIN`, `CLINICIAN` y `PATIENT` (el paciente solo ve su propia ficha):
+
+| Método y ruta | Qué devuelve |
+| --- | --- |
+| `GET /api/v1/exam-types` | Tipos de examen **activos**, ordenados por nombre (`{ items: [{ id, code, name }] }`). Alimenta el selector de `examTypeId` al subir. |
+| `GET /api/v1/patients/{patientId}/exams` | Página `{ items, total, limit, offset }` de exámenes no eliminados, del más reciente al más antiguo, cada uno con su `latestVersion` y `versionCount`. |
+| `GET /api/v1/exams/{examId}` | Detalle con `createdBy` e historial completo `versions` (de la más reciente a la más antigua). |
+
+Filtros del listado: `limit` (1-100, por defecto 50), `offset`, `examTypeId` (UUID), `from` y `to` (`YYYY-MM-DD`, inclusivos).
+
+Reglas: exámenes de otra clínica, eliminados o de pacientes que el actor no puede leer responden `404` (`PATIENT_NOT_FOUND` / `EXAM_NOT_FOUND`) sin revelar si existen. Las fechas imposibles dan `400 INVALID_DATE_FILTER` y `from > to` da `400 INVALID_DATE_RANGE`. `sizeBytes` es numérico. Nunca se exponen `storageKey` ni correos; el responsable se muestra con su `displayName` en la clínica. Consultar no genera auditoría: `VIEW` y `DOWNLOAD` se registran al abrir o descargar el archivo.
+
 ## Pruebas y CI
 
 ```powershell
