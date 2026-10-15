@@ -18,9 +18,15 @@ export function validateEnvironment(env: Record<string, unknown>) {
   if (swagger !== undefined && swagger !== 'true' && swagger !== 'false') {
     throw new Error('SWAGGER_ENABLED must be true or false');
   }
+  // Allowlist de orígenes para CORS (frontend web). Sin valor: ningún origen en
+  // producción, localhost:5173/4173 (Vite dev/preview) fuera de producción.
+  const corsOrigins = typeof env.CORS_ORIGINS === 'string' && env.CORS_ORIGINS.trim()
+    ? env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : env.NODE_ENV === 'production' ? [] : ['http://localhost:5173', 'http://localhost:4173'];
   return {
     ...env, DATABASE_URL: databaseUrl, JWT_SECRET: secret, JWT_ISSUER: issuer,
     JWT_AUDIENCE: audience, PORT: port,
     SWAGGER_ENABLED: swagger === undefined ? env.NODE_ENV !== 'production' : swagger === 'true',
+    CORS_ORIGINS: corsOrigins,
   };
 }

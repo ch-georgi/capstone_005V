@@ -11,7 +11,7 @@ export function createOpenApiDocument(app: INestApplication) {
     .addTag('Users', 'Creación controlada de cuentas y membresías.')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build());
-  for (const name of ['CreateUserDto', 'LoginDto']) {
+  for (const name of ['CreateUserDto', 'LoginDto', 'VerifyClinicsDto']) {
     const schema = document.components?.schemas?.[name];
     if (schema && !('$ref' in schema)) schema.additionalProperties = false;
   }
@@ -22,6 +22,9 @@ export function configureApplication(app: INestApplication) {
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
   app.useGlobalFilters(new ApiExceptionFilter());
+  // Bearer JWT en Authorization, no cookies: no se necesitan credentials ni
+  // protección CSRF adicional. Orígenes vienen de CORS_ORIGINS (ver environment.ts).
+  app.enableCors({ origin: app.get(ConfigService).get<string[]>('CORS_ORIGINS') ?? [], credentials: false });
   if (app.get(ConfigService).get<boolean>('SWAGGER_ENABLED')) {
     SwaggerModule.setup('api/docs', app, () => createOpenApiDocument(app), {
       jsonDocumentUrl: '/api/openapi.json', raw: ['json'],
