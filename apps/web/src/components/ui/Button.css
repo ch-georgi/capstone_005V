@@ -1,0 +1,48 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-s);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 11px 18px;
+  cursor: pointer;
+  width: 100%;
+  transition: filter 0.15s, transform 0.05s, opacity 0.15s;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: var(--teal-ink);
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.btn-danger {
+  background: var(--red);
+  color: #2a0a10;
+}

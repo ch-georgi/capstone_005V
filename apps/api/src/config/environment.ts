@@ -30,9 +30,19 @@ export function validateEnvironment(env: Record<string, unknown>) {
       if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.pathname !== '/' || endpoint.search || endpoint.hash) throw new Error();
     } catch { throw new Error('S3_ENDPOINT must be an http(s) origin without path or query'); }
   }
+
+
+  // Allowlist explícita de orígenes para CORS (frontend web). Sin valor: en
+  // producción no se acepta ningún origen hasta configurarla; fuera de
+  // producción, application.ts acepta cualquier puerto de localhost/127.0.0.1
+  //
+  const corsOrigins = typeof env.CORS_ORIGINS === 'string' && env.CORS_ORIGINS.trim()
+    ? env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : null;
   return {
     ...env, DATABASE_URL: databaseUrl, JWT_SECRET: secret, JWT_ISSUER: issuer,
     JWT_AUDIENCE: audience, PORT: port,
     SWAGGER_ENABLED: swagger === undefined ? env.NODE_ENV !== 'production' : swagger === 'true',
+    CORS_ORIGINS: corsOrigins,
   };
 }

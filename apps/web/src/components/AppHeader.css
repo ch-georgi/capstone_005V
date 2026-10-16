@@ -1,0 +1,70 @@
+.app-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 16px;
+  width: 100%;
+  padding-inline: clamp(20px, 4vw, 48px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--teal-ink);
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 15px;
+  flex: none;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 16px;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app-nav a {
+  text-decoration: none;
+  color: var(--text);
+}
+
+.app-nav a:hover {
+  color: var(--teal);
+}
+
+.app-nav .link-button:hover {
+  color: var(--red);
+}
+
+@media (max-width: 420px) {
+  .brand-name {
+    display: none;
+  }
+}

@@ -1,0 +1,87 @@
+.welcome {
+  padding-block: 48px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.welcome-greeting h1 {
+  font-size: clamp(24px, 3.4vw, 32px);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.welcome-clinic {
+  color: var(--teal);
+}
+
+.welcome-lede {
+  color: var(--text-muted);
+  font-size: 15.5px;
+  margin-top: 6px;
+}
+
+/* --- Carrusel (React-Bootstrap), re-temado con los tokens de WellQ --- */
+.welcome-carousel {
+  --bs-carousel-indicator-active-bg: var(--teal);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.welcome-slide {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding-block: 48px;
+  padding-inline: 88px;
+  color: #ffffff;
+}
+
+.welcome-slide h2 {
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 650;
+  max-width: 34ch;
+}
+
+.welcome-slide p {
+  font-size: 15px;
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1.6;
+}
+
+.welcome-slide.tone-teal {
+  background: linear-gradient(135deg, #0a5f58, #0ea99d);
+}
+
+.welcome-slide.tone-blue {
+  background: linear-gradient(135deg, #15336b, #2563eb);
+}
+
+.welcome-slide.tone-purple {
+  background: linear-gradient(135deg, #3a1664, #8530d8);
+}
+
+.welcome-carousel .carousel-control-prev,
+.welcome-carousel .carousel-control-next {
+  width: 64px;
+}
+
+.welcome-carousel .carousel-control-prev-icon,
+.welcome-carousel .carousel-control-next-icon {
+  background-color: rgba(0, 0, 0, 0.22);
+  border-radius: 50%;
+  padding: 18px;
+  background-size: 45%;
+}
+
+@media (max-width: 600px) {
+  .welcome-slide {
+    padding: 36px 28px;
+    min-height: 220px;
+  }
+}

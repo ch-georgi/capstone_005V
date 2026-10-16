@@ -10,17 +10,19 @@ async function main() {
   const fixture=await readFile(resolve(__dirname,'../../../database/fixtures/documento-demo.pdf'));
   const sha256=createHash('sha256').update(fixture).digest('hex');
   const passwordHash=await argon2.hash('Demo1234!');
+  // Credencial de prueba corta para probar manualmente el login (dato sintético, no real).
+  const adminTestHash=await argon2.hash('12345');
   const clinics=[id(1,1),id(1,2)];
   for (let i=0;i<2;i++) await db.clinic.upsert({where:{id:clinics[i]},update:{},create:{id:clinics[i],name:`Clínica ${i?'B':'A'}`,code:`CLINIC_${i?'B':'A'}`}});
   const codes=['LAB','IMAGING','MEDICAL_REPORT','REFERRAL','FUNCTIONAL','OTHER'];
   const names=['Laboratorio','Imagenología','Informe médico','Derivación','Evaluación funcional','Otro'];
   for(let i=0;i<codes.length;i++) await db.examType.upsert({where:{id:id(2,i+1)},update:{},create:{id:id(2,i+1),code:codes[i],name:names[i]}});
-  const makeUser=async (uid:string,email:string|null)=>db.user.upsert({where:{id:uid},update:{},create:{id:uid,email,passwordHash:email?passwordHash:null}});
+  const makeUser=async (uid:string,email:string|null,hash:string=passwordHash)=>db.user.upsert({where:{id:uid},update:{},create:{id:uid,email,passwordHash:email?hash:null}});
   const membership=async(uid:string,clinicId:string,role:TenantRole,displayName:string,isActive=true)=>db.userClinic.upsert({where:{userId_clinicId:{userId:uid,clinicId}},update:{},create:{userId:uid,clinicId,role,displayName,isActive}});
   await makeUser(id(3,99),'system@example.com');
   await db.user.update({where:{id:id(3,99)},data:{isSystemAdmin:true}});
   for(let i=0;i<2;i++) {
-    await makeUser(id(3,i+1),`admin${i+1}@example.com`);
+    await makeUser(id(3,i+1), i===0?'admin@wellq.cl':`admin${i+1}@example.com`, i===0?adminTestHash:passwordHash);
     await membership(id(3,i+1),clinics[i],TenantRole.CLINIC_ADMIN,`Administrador ${i+1}`);
   }
   // Same account: administrator in A, clinician in B, with independent activation.
