@@ -10,6 +10,15 @@ describe('configuration and passwords', () => {
     expect(() => validateEnvironment({ ...valid, PORT: '1.5' })).toThrow('PORT');
     expect(() => validateEnvironment({ ...valid, SWAGGER_ENABLED: 'yes' })).toThrow('SWAGGER_ENABLED');
   });
+  it('accepts missing S3 settings but requires all of them once one is set, with an origin-only endpoint', () => {
+    expect(() => validateEnvironment({ ...valid })).not.toThrow();
+    const s3 = { S3_ENDPOINT: 'http://localhost:9222', S3_BUCKET: 'wellq-dev', S3_ACCESS_KEY_ID: 'key', S3_SECRET_ACCESS_KEY: 'secret' };
+    expect(() => validateEnvironment({ ...valid, ...s3 })).not.toThrow();
+    for (const key of Object.keys(s3)) expect(() => validateEnvironment({ ...valid, ...s3, [key]: '' })).toThrow(key === 'S3_ENDPOINT' ? 'S3_ENDPOINT' : key);
+    expect(() => validateEnvironment({ ...valid, ...s3, S3_ENDPOINT: 'http://localhost:9222/wellq-dev' })).toThrow('origin');
+    expect(() => validateEnvironment({ ...valid, ...s3, S3_ENDPOINT: 'ftp://host' })).toThrow('origin');
+    expect(() => validateEnvironment({ ...valid, S3_BUCKET: 'solo-el-bucket' })).toThrow('S3_ENDPOINT');
+  });
   it('defaults Swagger off in production and on in development; supports explicit override', () => {
     expect(validateEnvironment({ ...valid }).SWAGGER_ENABLED).toBe(true);
     expect(validateEnvironment({ ...valid, NODE_ENV: 'production' }).SWAGGER_ENABLED).toBe(false);

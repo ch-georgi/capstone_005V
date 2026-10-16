@@ -225,6 +225,21 @@ La suite `test:postgres` requiere una base descartable cuyo nombre termine en
 `_schema_test`. No apuntes `TEST_DATABASE_URL` a `wellq_dev`. Para esa suite,
 consulta [la validación del contrato de datos](database/contracts/README.md#validación-reproducible).
 
+### Probar la carga y descarga de exámenes
+
+Con Docker, `db:fixtures` y la API en marcha (`S3_*` definidas en `apps/api/.env`):
+
+```powershell
+$env:SMOKE_EMAIL = 'admin1@example.com'
+$env:SMOKE_PASSWORD = 'Demo1234!'
+npm.cmd run smoke:exam-files --prefix apps/api
+```
+
+Debe terminar con `LISTO`. Detalle de la ruta y de sus reglas en
+[apps/api/README.md](apps/api/README.md#carga-y-descarga-de-exámenes-pb-034-a-039-041-042-063-064-072-a-075).
+Si la API responde `503 STORAGE_NOT_CONFIGURED`, falta alguna variable `S3_*` o hay que
+reiniciar la API después de editar el `.env`.
+
 ## 8. Iniciar la API y abrir Swagger
 
 Con PostgreSQL en ejecución, las migraciones aplicadas y las variables del paso 2
