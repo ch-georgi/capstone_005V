@@ -233,6 +233,27 @@ Reglas:
 - Auditoría: `UPDATE` (con `metadata.changedFields`, solo nombres de campos) y `DELETE`, en la misma transacción que el cambio. Se bloquea primero la clínica y luego el examen, y se reintenta hasta 3 veces ante deadlock.
 - Tras eliminar, el examen desaparece de listados, detalle, descargas y nuevas versiones (`404`). La purga definitiva (`purge_exam`) es un proceso aparte, todavía no expuesto.
 
+## Gestión de miembros de la clínica
+
+Rutas del administrador de la clínica de la sesión (`CLINIC_ADMIN` activo; `PATCH` además exige sesión de escritura). Complementan `POST /api/v1/users`, que crea cuentas.
+
+| Método y ruta | Qué hace |
+| --- | --- |
+| `GET /api/v1/users` | Página `{ items, total, limit, offset }` de miembros, por nombre. Filtros: `role`, `isActive` (`true`/`false`), `q` (nombre o correo, contiene), `limit` (1-100, 50 por defecto) y `offset`. |
+| `GET /api/v1/users/{userId}` | Un miembro de la clínica. |
+| `PATCH /api/v1/users/{userId}` | Edita `displayName`, `role` (solo `CLINIC_ADMIN` o `CLINICIAN`) o `isActive`. Devuelve el miembro actualizado. |
+
+Cada miembro incluye `id` (cuenta), `email` (null si la cuenta está pendiente), `displayName`, `role`, `isActive`, `hasCredentials`, `patientId` (ficha, si existe) y fechas. Nunca se devuelven hashes ni datos de otras clínicas.
+
+Reglas:
+- Un usuario de otra clínica o inexistente responde `404 USER_NOT_FOUND`; un clínico o paciente que llama estas rutas recibe `403`.
+- Las membresías **no se eliminan**: se desactivan (`isActive: false`). El acceso se corta de inmediato (`403 TENANT_INACTIVE`), salvo que un paciente conserva lectura de sus exámenes históricos, como ya define el contrato de datos.
+- No puedes cambiar tu propio rol ni desactivarte (`409 SELF_CHANGE_FORBIDDEN`), así la clínica nunca se queda sin administrador activo. Sí puedes cambiar tu nombre.
+- El rol de un paciente no cambia (`409 PATIENT_ROLE_LOCKED`) y `PATIENT` no se puede asignar por esta ruta (`400`).
+- Cuerpo vacío: `400 EMPTY_UPDATE`. Si los valores son iguales a los actuales, no se escribe ni se audita.
+- Auditoría `UPDATE` con `metadata`: `entity: 'USER_CLINIC'`, `userId`, `changedFields` y, si cambia el rol, `roleFrom`/`roleTo`. Si el miembro es un paciente, el registro se asocia a su ficha. La revisión de permisos (`permission_revision`) la incrementa la base de datos al cambiar rol o estado.
+- Bloqueo en orden fijo (clínica, luego membresías) y hasta 3 reintentos ante deadlock.
+
 ## Pruebas y CI
 
 ```powershell
