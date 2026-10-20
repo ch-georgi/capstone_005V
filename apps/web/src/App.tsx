@@ -5,6 +5,9 @@ import { Welcome } from "./pages/Welcome";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { CreateUser } from "./pages/CreateUser";
+import { Patients } from "./pages/Patients";
+import { PatientForm } from "./pages/PatientForm";
+import { PatientDetail } from "./pages/PatientDetail";
 
 export default function App() {
   return (
@@ -29,6 +32,10 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/pacientes" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
+        <Route path="/pacientes/nuevo" element={<ProtectedRoute><PatientForm /></ProtectedRoute>} />
+        <Route path="/pacientes/:patientId" element={<ProtectedRoute><PatientDetail /></ProtectedRoute>} />
+        <Route path="/pacientes/:patientId/editar" element={<ProtectedRoute><PatientForm /></ProtectedRoute>} />
       </Routes>
     </>
   );

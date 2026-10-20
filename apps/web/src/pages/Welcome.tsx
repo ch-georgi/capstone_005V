@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Carousel from "react-bootstrap/Carousel";
 import { useAuth } from "../context/AuthContext";
 import "./Welcome.css";
@@ -38,6 +39,7 @@ export function Welcome() {
         <p className="welcome-lede">
           Gestiona el historial documental de tus pacientes de forma segura y auditable.
         </p>
+        <Link to="/pacientes" className="btn btn-primary">Ir a pacientes</Link>
       </div>
 
       <Carousel className="welcome-carousel" indicators controls interval={6000}>
