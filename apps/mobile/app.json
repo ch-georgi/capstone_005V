@@ -2,10 +2,10 @@
   "expo": {
     "name": "WellQ",
     "slug": "wellq-mobile",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "scheme": "wellq",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "icon": "./assets/wellq-logo.png",
     "splash": {
       "image": "./assets/wellq-logo.png",
@@ -17,7 +17,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/wellq-logo.png",
         "backgroundColor": "#000000"
-      }
+      },
+      "versionCode": 2
     },
     "plugins": [
       "expo-router",

@@ -17,6 +17,7 @@ export class ProfileClinicDto {
   @ApiProperty() name!: string;
 }
 export class MobileProfileDto {
+  @ApiProperty({ type: String, format: "uuid", nullable: true }) patientId!: string | null;
   @ApiProperty({ type: ProfileUserDto }) user!: ProfileUserDto;
   @ApiProperty({ type: ProfileClinicDto }) clinic!: ProfileClinicDto;
   @ApiProperty() displayName!: string;

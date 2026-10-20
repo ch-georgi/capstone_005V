@@ -1,5 +1,6 @@
 import {
   Api,
+  BinaryFile,
   ApiError,
   ClinicOption,
   LoginResult,
@@ -263,13 +264,48 @@ export class SessionManager {
   async switchClinic(clinicId: string) {
     if (!this.session || this.expiresAt <= Date.now() + 30000)
       await this.refresh();
-    const generation = this.generation;
+    const generation = ++this.generation;
     const result = await this.api.request<Session>(
       "/auth/mobile/switch-clinic",
       { clinicId },
       this.session!.accessToken,
     );
     await this.accept(result, generation);
+  }
+  contextKey() { return `${this.generation}:${this.value.profile?.user.id}:${this.value.profile?.clinic.id}`; }
+  private async authorized<T>(operation: (token: string) => Promise<T>): Promise<T> {
+    const key=this.contextKey();
+    const generation=this.generation;
+    if(!this.session || this.expiresAt <= Date.now()+30000) await this.refresh();
+    if(key!==this.contextKey()) throw new ApiError(409,"CONTEXT_CHANGED","La sesión cambió.");
+    const accessToken=this.session!.accessToken;
+    try {
+      let result: T;
+      try { result=await operation(accessToken); }
+      catch(error) {
+        if(!(error instanceof ApiError) || error.status!==401 || key!==this.contextKey()) throw error;
+        if(this.session?.accessToken===accessToken) await this.refresh();
+        if(key!==this.contextKey()) throw new ApiError(409,"CONTEXT_CHANGED","La sesión cambió.");
+        try { result=await operation(this.session!.accessToken); }
+        catch(second) { if(second instanceof ApiError && second.status===401 && generation===this.generation) await this.clear(); throw second; }
+      }
+      if(key!==this.contextKey()) throw new ApiError(409,"CONTEXT_CHANGED","La sesión cambió.");
+      return result;
+    } catch(error) { throw error; }
+  }
+  request<T>(path: string, body?: unknown, method?: string) {
+    return this.authorized(token=>this.api.request<T>(path,body,token,method));
+  }
+  file(path: string): Promise<BinaryFile> {
+    return this.authorized(token=>{
+      if(!this.api.file) throw new ApiError(400,"DEMO_ONLY","Los documentos requieren conexión real.");
+      return this.api.file(path,token);
+    });
+  }
+  async updateName(displayName: string) {
+    const generation=this.generation;
+    const profile=await this.request<Profile>("/auth/me",{displayName},"PATCH");
+    if(this.session && generation===this.generation) await this.accept({...this.session,profile,expiresIn:Math.max(1,Math.floor((this.expiresAt-Date.now())/1000))},generation);
   }
   async clear() {
     ++this.generation;

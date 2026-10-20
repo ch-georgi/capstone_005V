@@ -57,3 +57,5 @@ apps/mobile/artifacts/
 
 # Evitar versionar configuraciones de producción con secretos.
 .env.production
+
+apps/mobile/src/documents/pdf-runtime.generated.ts

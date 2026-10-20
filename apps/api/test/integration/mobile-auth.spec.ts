@@ -433,4 +433,30 @@ describe("Mobile sessions, tenant selection and password recovery (PostgreSQL)",
     );
     expect(document.components!.schemas!.MobileSessionDto).toBeDefined();
   });
+  it("resolves patientId in the current clinic and edits only its own display name including read-only accounts", async () => {
+    const initial=await login().expect(200);
+    expect(initial.body.session.profile.patientId).toBeNull();
+    const record=await db.patient.create({data:{userId,clinicId:clinicA,firstName:"QA",lastName:"Fixture",dateOfBirth:new Date("1990-01-01")}});
+    await secondClinic();
+    const current=await login().expect(200);
+    const selected=await post("mobile/select-clinic",{selectionToken:current.body.selectionToken,clinicId:clinicA}).expect(200);
+    expect(selected.body.profile.patientId).toBe(record.id);
+    const token=selected.body.accessToken;
+    const update=(body:object)=>request(app.getHttpServer()).patch("/api/v1/auth/me").auth(token,{type:"bearer"}).send(body);
+    const changed=await update({displayName:"  Nombre nuevo  "}).expect(200);
+    expect(changed.body.displayName).toBe("Nombre nuevo");
+    expect(changed.body.patientId).toBe(record.id);
+    expect((await db.userClinic.findUniqueOrThrow({where:{userId_clinicId:{userId,clinicId:clinicB}}})).displayName).toBe("Nombre privado B");
+    expect((await db.patient.findUniqueOrThrow({where:{id:record.id}})).firstName).toBe("QA");
+    await update({displayName:" "}).expect(400);
+    await update({displayName:"a".repeat(101)}).expect(400);
+    await update({displayName:"Invalido",email:"other@example.com"}).expect(400);
+    const audit=await db.auditLog.findFirstOrThrow({where:{actorId:userId,action:"UPDATE"},orderBy:{createdAt:"desc"}});
+    expect(audit.metadata).toEqual({entity:"USER_CLINIC_PROFILE",changedFields:["displayName"]});
+    await db.userClinic.update({where:{userId_clinicId:{userId,clinicId:clinicA}},data:{isActive:false}});
+    const historical=await update({displayName:"Nombre histórico"}).expect(200);
+    expect(historical.body.access).toBe("READ_ONLY");
+    expect(historical.body.patientId).toBe(record.id);
+  });
+
 });

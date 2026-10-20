@@ -7,6 +7,7 @@ const makeSession = (suffix = "a"): Session => ({
   expiresIn: 900,
   sessionExpiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
   profile: {
+    patientId: null,
     user: { id: "patient", email: "patient@example.com" },
     clinic: { id: suffix, name: `Clínica ${suffix}` },
     displayName: "Paciente",
@@ -210,4 +211,18 @@ describe("Persistent mobile session lifecycle", () => {
     expect(s.manager.getSnapshot().status).toBe("anonymous");
     expect(s.data.size).toBe(0);
   });
+});
+
+it("retries an authenticated JSON request once after a single refresh",async()=>{
+ const state=await loggedIn();
+ state.request.mockRejectedValueOnce(new ApiError(401,"UNAUTHORIZED","expired"));
+ const renewed=makeSession();renewed.accessToken="access-renewed";renewed.refreshToken="refresh-renewed";
+ state.request.mockResolvedValueOnce(renewed).mockResolvedValueOnce({items:[]});
+ await expect(state.manager.request("/exams/test")).resolves.toEqual({items:[]});
+ expect(state.request).toHaveBeenLastCalledWith("/exams/test",undefined,"access-renewed",undefined);
+});
+it("does not deliver an old account response after logout",async()=>{
+ const state=await loggedIn();const pending=deferred<object>();state.request.mockReturnValueOnce(pending.promise);
+ const result=state.manager.request("/exams/slow");await Promise.resolve();await state.manager.clear();pending.resolve({private:true});
+ await expect(result).rejects.toMatchObject({code:"CONTEXT_CHANGED"});
 });

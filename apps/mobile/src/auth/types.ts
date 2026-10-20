@@ -6,6 +6,7 @@ export interface ClinicOption {
   patientRecordPending: boolean;
 }
 export interface Profile {
+  patientId: string | null;
   user: { id: string; email: string };
   clinic: { id: string; name: string };
   displayName: string;
@@ -34,7 +35,9 @@ export interface Storage {
   setItem(key: string, value: string): Promise<void>;
   deleteItem(key: string): Promise<void>;
 }
+export interface BinaryFile { bytes: Uint8Array; mimeType: string }
 export interface Api {
+  file?(path: string, token: string): Promise<BinaryFile>;
   request<T>(
     path: string,
     body?: unknown,

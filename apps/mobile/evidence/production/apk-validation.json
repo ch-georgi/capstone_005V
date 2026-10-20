@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-20",
+  "apk": "wellq-0.1.0-production.apk",
+  "bytes": 88083644,
+  "sha256": "23544e0aaa90f9a9af1c78abd97392decef1bbb00e65966a5f7e0f3e502ec801",
+  "demoMode": false,
+  "apiUrl": "https://capstone005v-production.up.railway.app/api/v1",
+  "signing": "development",
+  "androidMinSdk": 29
+}

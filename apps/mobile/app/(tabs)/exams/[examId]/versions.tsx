@@ -1,0 +1,7 @@
+import React from "react";
+import {router,useLocalSearchParams} from "expo-router";
+import {ActivityIndicator} from "react-native";
+import {useResource} from "../../../../src/exams/use-resource";
+import {ExamDetail,dateLabel,sizeLabel} from "../../../../src/exams/types";
+import {Screen,Heading,Copy,Card,Badge,Button,ErrorMessage} from "../../../../src/ui";
+export default function Versions(){const {examId}=useLocalSearchParams<{examId:string}>();const {data,loading,error,reload}=useResource<ExamDetail>(`/exams/${examId}`);return <Screen center={false}><Button title="Volver al detalle" secondary onPress={()=>router.replace(`/exams/${examId}`)}/><Heading>Historial de versiones</Heading>{loading?<ActivityIndicator/>:null}<ErrorMessage message={error}/>{error?<Button title="Reintentar" onPress={reload}/>:null}{data?.versions.map((v,index)=><Card key={v.id}><Badge>{index===0?"Versión vigente":"Versión anterior"}</Badge><Copy>Versión {v.versionNumber}</Copy><Copy>{v.originalFilename}</Copy><Copy muted>{dateLabel(v.createdAt)} · {v.mimeType} · {sizeLabel(v.sizeBytes)}</Copy><Copy muted>Responsable: {v.uploadedBy.displayName||"No informado"}</Copy><Button title={`Ver versión ${v.versionNumber}`} onPress={()=>router.push(`/document/${examId}/${v.id}`)}/><Button title={`Descargar versión ${v.versionNumber}`} secondary onPress={()=>router.push({pathname:"/document/[examId]/[versionId]",params:{examId,versionId:v.id,download:"true"}})}/></Card>)}</Screen>;}

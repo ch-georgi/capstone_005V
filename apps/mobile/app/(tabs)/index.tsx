@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "expo-router";
-import { useAuth } from "../src/auth/context";
+import { useAuth } from "../../src/auth/context";
 import {
   Badge,
   Button,
@@ -10,9 +10,9 @@ import {
   Heading,
   Logo,
   Screen,
-} from "../src/ui";
+} from "../../src/ui";
 export default function Welcome() {
-  const { manager, profile, offline, clinics } = useAuth();
+  const { manager, profile, offline } = useAuth();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   if (!profile) return null;
@@ -72,26 +72,7 @@ export default function Welcome() {
         </Card>
       ) : null}
       <ErrorMessage message={error} />
-      {!offline && clinics.length > 1 ? (
-        <Button
-          title="Cambiar de clínica"
-          secondary
-          onPress={() => router.push("/clinics")}
-        />
-      ) : null}
-      <Button
-        title="Cerrar sesión"
-        secondary
-        onPress={() => {
-          void manager
-            .logout()
-            .catch(() =>
-              setError(
-                "No se pudo limpiar la sesión local. Vuelve a intentar.",
-              ),
-            );
-        }}
-      />
+      <Button title="Mis exámenes" onPress={()=>router.push("/exams")}/>
     </Screen>
   );
 }

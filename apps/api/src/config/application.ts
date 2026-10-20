@@ -17,7 +17,7 @@ export function createOpenApiDocument(app: INestApplication) {
     .addTag('Exam files', 'Descarga y visualización de archivos de una versión, con auditoría.')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build());
-  for (const name of ['CreateUserDto', 'LoginDto', 'VerifyClinicsDto', 'EmailDto', 'MobileLoginDto', 'TokenDto', 'SelectClinicDto', 'SwitchClinicDto', 'VerifyCodeDto', 'ResetPasswordDto', 'CreatePatientDto', 'UpdatePatientDto']) {
+  for (const name of ['UpdateMobileProfileDto', 'CreateUserDto', 'LoginDto', 'VerifyClinicsDto', 'EmailDto', 'MobileLoginDto', 'TokenDto', 'SelectClinicDto', 'SwitchClinicDto', 'VerifyCodeDto', 'ResetPasswordDto', 'CreatePatientDto', 'UpdatePatientDto']) {
     const schema = document.components?.schemas?.[name];
     if (schema && !('$ref' in schema)) schema.additionalProperties = false;
   }

@@ -1,9 +1,11 @@
 import React from "react";
 import { fireEvent, screen } from "@testing-library/react-native";
 import { renderRouter } from "expo-router/testing-library";
+import TabLayout from "../app/(tabs)/_layout";
+import Account from "../app/(tabs)/account";
 import Layout from "../app/_layout";
 import Login from "../app/login";
-import Welcome from "../app/index";
+import Welcome from "../app/(tabs)/index";
 import Clinics from "../app/clinics";
 import Recovery from "../app/recovery";
 import * as SecureStore from "expo-secure-store";
@@ -16,7 +18,7 @@ it("runs the real protected login/welcome/logout flow without network or device 
   const get = jest.spyOn(SecureStore, "getItemAsync");
   const set = jest.spyOn(SecureStore, "setItemAsync");
   const remove = jest.spyOn(SecureStore, "deleteItemAsync");
-  const navigation = renderRouter({ _layout: Layout, index: Welcome, login: Login, clinics: Clinics, recovery: Recovery }, { initialUrl: "/" });
+  const navigation = renderRouter({ _layout: Layout, "(tabs)/_layout": TabLayout, "(tabs)/index": Welcome, "(tabs)/account": Account, "(tabs)/exams": () => null, login: Login, clinics: Clinics, recovery: Recovery, "document/[examId]/[versionId]": () => null }, { initialUrl: "/" });
   await navigation;
   expect(navigation.getPathname()).toBe("/login");
   expect(screen.getByText("Modo demostración · Datos ficticios")).toBeTruthy();
@@ -25,7 +27,8 @@ it("runs the real protected login/welcome/logout flow without network or device 
   await fireEvent.press(screen.getByText("Iniciar sesión"));
   expect(await screen.findByText("Hola, Christopher")).toBeTruthy();
   expect(navigation.getPathname()).toBe("/");
-  await fireEvent.press(screen.getByText("Cerrar sesión"));
+  await fireEvent.press(screen.getByText("Mi cuenta"));
+  await fireEvent.press(await screen.findByText("Cerrar sesión"));
   expect(await screen.findByText("Bienvenido a WellQ")).toBeTruthy();
   expect(navigation.getPathname()).toBe("/login");
   expect(fetch).not.toHaveBeenCalled();

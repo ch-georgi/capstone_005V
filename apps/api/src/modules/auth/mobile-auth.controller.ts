@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Patch, Post, Req } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiExtraModels,
@@ -14,6 +14,7 @@ import { AuthenticatedRequest } from "../../common/types/auth-context";
 import { ApiErrorDto } from "../../common/filters/api-error";
 import { MobileAuthService } from "./mobile-auth.service";
 import {
+  UpdateMobileProfileDto,
   EmailDto,
   MobileLoginDto,
   TokenDto,
@@ -88,6 +89,14 @@ export class MobileAuthController {
   @ApiResponse({ status: 200, type: MobileProfileDto })
   me(@Req() req: AuthenticatedRequest) {
     return this.auth.me(req.session!);
+  }
+  @Patch("me")
+  @ApiBearerAuth("bearer")
+  @RequireAccess({ roles: [TenantRole.PATIENT] })
+  @ApiOperation({ summary: "Editar el nombre propio en la clínica actual" })
+  @ApiResponse({ status: 200, type: MobileProfileDto })
+  updateProfile(@Body() input: UpdateMobileProfileDto, @Req() req: AuthenticatedRequest) {
+    return this.auth.updateProfile(req.session!, input.displayName);
   }
   @Public()
   @Post("refresh")

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-20",
+  "apiUrl": "https://capstone005v-production.up.railway.app/api/v1",
+  "patient2": {
+    "loginHttp": 200,
+    "status": "AUTHENTICATED",
+    "profileHttp": 200,
+    "displayName": "Paciente 2",
+    "clinic": "Clínica A",
+    "patientRecordPending": false,
+    "refreshHttp": 200,
+    "refreshRotated": true,
+    "logoutHttp": 204,
+    "revokedAccessHttp": 401
+  },
+  "patient1": {
+    "loginHttp": 200,
+    "status": "CLINIC_SELECTION_REQUIRED",
+    "clinics": [
+      "Clínica A",
+      "Clínica B"
+    ],
+    "selectClinicHttp": 200,
+    "profileHttp": 200,
+    "displayName": "Paciente 1",
+    "refreshHttp": 200,
+    "refreshRotated": true,
+    "logoutHttp": 204,
+    "revokedAccessHttp": 401
+  },
+  "legacyAdminLoginHttp": 200,
+  "mobileTests": 32,
+  "environmentTests": 2,
+  "lint": "passed",
+  "typecheck": "passed",
+  "seedExecuted": false,
+  "existingAccountsModified": false,
+  "additionalAccountCreated": false
+}

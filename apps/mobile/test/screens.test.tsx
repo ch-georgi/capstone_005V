@@ -6,7 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import Login from "../app/login";
-import Welcome from "../app/index";
+import Welcome from "../app/(tabs)/index";
 import Clinics from "../app/clinics";
 import Recovery from "../app/recovery";
 import { useAuth } from "../src/auth/context";
@@ -67,9 +67,8 @@ it("shows the authorized clinic and read-only status without fake exam actions",
   expect(screen.getByText("Hola, Paciente de prueba")).toBeTruthy();
   expect(screen.getByText("Clínica A")).toBeTruthy();
   expect(screen.getByText("Acceso de solo lectura")).toBeTruthy();
-  expect(screen.queryByText("Mis Exámenes")).toBeNull();
-  await fireEvent.press(screen.getByText("Cerrar sesión"));
-  expect(logout).toHaveBeenCalled();
+  expect(screen.getByText("Mis exámenes")).toBeTruthy();
+  expect(screen.queryByText("Cerrar sesión")).toBeNull();
 });
 it("shows offline information without asserting current write permissions", async () => {
   (useAuth as jest.Mock).mockReturnValue({

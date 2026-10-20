@@ -12,7 +12,7 @@ Copy-Item apps/mobile/.env.example apps/mobile/.env
 npm.cmd start --prefix apps/mobile
 ```
 
-El emulador usa `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000/api/v1`. En un teléfono físico usar la IP LAN del equipo que ejecuta la API, en la misma red, o la URL HTTPS del despliegue. La URL es pública y se incorpora al bundle: nunca poner secretos en variables `EXPO_PUBLIC_*`. Reiniciar Expo después de cambiarla.
+La plantilla de desarrollo local usa `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000/api/v1`; la configuración actual de este equipo usa Railway, como se indica al final de esta guía. En un teléfono físico usar la IP LAN del equipo que ejecuta la API, en la misma red, o la URL HTTPS del despliegue. La URL es pública y se incorpora al bundle: nunca poner secretos en variables `EXPO_PUBLIC_*`. Reiniciar Expo después de cambiarla.
 
 Para una compilación nativa local se necesitan JDK compatible con Gradle, Android SDK y licencias aceptadas. `ANDROID_HOME` debe apuntar al SDK y `JAVA_HOME` al JDK. Los directorios nativos se generan; la configuración autoritativa es app.json + app.config.ts.
 
@@ -68,7 +68,7 @@ Para presentar login y bienvenida sin API, PostgreSQL ni internet, editar `apps/
 WELLQ_DEMO_MODE=true
 ```
 
-Se activó este ajuste en el entorno local de Christopher. La plantilla `.env.example` conserva `false` por defecto para otros entornos. Reiniciar Expo limpiando su caché:
+El entorno local de Christopher usa actualmente `false` para acceder a Railway; cambiar a `true` para presentar nuevamente el mockup. La plantilla `.env.example` conserva `false` por defecto para otros entornos. Reiniciar Expo limpiando su caché:
 
 ```powershell
 npm.cmd start --prefix apps/mobile -- --clear
@@ -92,3 +92,29 @@ npm.cmd run apk:demo --prefix apps/mobile
 ```
 
 Salida: `apps/mobile/artifacts/wellq-0.1.0-demo.apk`, con firma de desarrollo. Este comando fuerza demo incluso si el `.env` dice false. Para otro APK con autenticación real de desarrollo, poner false y usar `apk:preview`. El comando `apk` / `apk:production` siempre desactiva demo y exige la URL HTTPS de producción. Un APK instalado no cambia al editar el `.env`: hay que recompilar y reinstalar. Las credenciales demo no existen en el backend ni otorgan acceso real.
+
+## Acceso real a Railway (20 de octubre de 2026)
+
+La API desplegada es `https://capstone005v-production.up.railway.app/api/v1`. Se configuró esta dirección en `.env` para Expo móvil y en `.env.production.local` para el APK, con demo desactivado. Los archivos de entorno no se versionan; en otro equipo hay que completar esos valores.
+
+```env
+# apps/mobile/.env
+WELLQ_DEMO_MODE=false
+EXPO_PUBLIC_API_URL=https://capstone005v-production.up.railway.app/api/v1
+```
+
+```env
+# apps/mobile/.env.production.local
+WELLQ_PRODUCTION_API_URL=https://capstone005v-production.up.railway.app/api/v1
+```
+
+Reiniciar Expo con `npm run start -- --clear` desde apps/mobile. El comando `web` conserva su API local (WELLQ_WEB_API_URL o localhost:3000); el `.env` de apps/api no cambia. Para instalar el acceso real en Android, ejecutar `npm run check:production` y `npm run apk` desde apps/mobile, e instalar `artifacts/wellq-0.1.0-production.apk`. Un APK demo instalado sigue siendo demo hasta reinstalar el APK real.
+
+Cuentas sintéticas ya existentes en Railway, verificadas por API:
+
+| Correo | Contraseña de pruebas | Flujo esperado |
+| --- | --- | --- |
+| patient2@example.com | Demo1234! | Clínica A, bienvenida «Paciente 2». |
+| patient1@example.com | Demo1234! | Selección entre Clínica A y B; nombre según clínica. |
+
+Estos usuarios son de prueba. La cuenta demo@wellq.app solo existe en el mockup. Para crear otra cuenta PATIENT con contraseña propia mediante la API administrativa, ver [procedimiento de alta en Railway](../api/RAILWAY.md#crear-un-paciente-adicional-de-prueba). El alta no crea ficha clínica: muestra el aviso de registro pendiente en la bienvenida. No reejecutar el seed ni restablecer cuentas existentes para esta validación.
