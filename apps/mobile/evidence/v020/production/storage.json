@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-20T21:04:41.075Z",
+  "apiUrl": "https://capstone005v-production.up.railway.app/api/v1",
+  "runId": "20261020T210441074Z",
+  "files": [
+    {
+      "fileName": "wellq-prueba-v1.pdf",
+      "examId": "24a6e6e9-b0c0-4107-a791-ca0b3d34be6b",
+      "versionId": "42aa7416-a996-40f2-8b9d-0bcea4df3fbb",
+      "versionNumber": 1,
+      "bytes": 2266,
+      "sha256": "0b86117e0c0fa54148f2d9fefedced6335f3ba51e596daefc2f3e1d1628f700a",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    },
+    {
+      "fileName": "wellq-prueba-v2.pdf",
+      "examId": "24a6e6e9-b0c0-4107-a791-ca0b3d34be6b",
+      "versionId": "1cbe6658-de67-4eb9-9ff8-482a90aa8b5c",
+      "versionNumber": 2,
+      "bytes": 2266,
+      "sha256": "403908a95f3dede1c49766d44cfbfdff0259e8222543d4bdd2d40ec21a89c60b",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    },
+    {
+      "fileName": "wellq-prueba.png",
+      "examId": "b6303fbe-423c-4344-87a4-461073b1cd9d",
+      "versionId": "ed4b64b9-f28f-4ce9-9720-0813492bec7e",
+      "versionNumber": 1,
+      "bytes": 10744,
+      "sha256": "2c282077ef8145fe0177c979469b208e123f2492d27d91a5399eb6ed03ca2402",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    },
+    {
+      "fileName": "wellq-prueba.jpg",
+      "examId": "9a999991-c1d6-42ec-89c1-2ec13b604bc9",
+      "versionId": "d4723d98-438d-4943-8b83-c6cce675e878",
+      "versionNumber": 1,
+      "bytes": 18684,
+      "sha256": "6665c73868983baed6ab01328c69f210aaff3eeae8a686a3d54c8b5bfbf2b093",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    }
+  ],
+  "reopenedSession": true,
+  "twoVersionsPersisted": true,
+  "otherPatientHttp": 404,
+  "nameUpdate": true,
+  "nameRestored": true
+}

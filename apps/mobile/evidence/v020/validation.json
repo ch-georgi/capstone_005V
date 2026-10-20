@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-20",
+  "mobileJestTestsPassed": 50,
+  "environmentTestsPassed": 2,
+  "mobileLint": true,
+  "mobileTypecheck": true,
+  "webExport": true,
+  "androidExport": true,
+  "localApkBuilt": true,
+  "productionApkBuilt": true,
+  "apiMobileAuthIntegrationTestsPassedPreviously": 22,
+  "localAndProductionStoragePassed": true,
+  "newVersionsPerEnvironment": 4,
+  "realPatientsModified": false,
+  "seedsRunInProduction": false,
+  "pending": [
+    "Tel\u00e9fono f\u00edsico Android 10+ y TalkBack",
+    "Inspecci\u00f3n interactiva completa de la vista web (exportaci\u00f3n verificada)"
+  ]
+}

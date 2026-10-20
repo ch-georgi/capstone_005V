@@ -325,3 +325,9 @@ y sus datos. Usa la misma carpeta y el mismo nombre de proyecto Compose al retom
 - [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
 - [Variables de entorno de Compose](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/).
 - [Compilaciones MinIO de Coollabs](https://github.com/coollabsio/minio).
+
+## Consulta documental móvil 0.2.0
+
+Railway sirve las rutas de perfil (incluido patientId), edición de nombre y consulta documental. Para probar los documentos ficticios conservados, usar patient2@example.com y la contraseña del seed de pruebas documentada en apps/mobile/README.md. Abrir Mis exámenes y los registros marcados [PRUEBA MÓVIL]. Cambiar la apariencia desde Mi cuenta; allí también están cambio de clínica y cierre de sesión.
+
+La prueba aislada local de esta entrega utiliza el puerto 3102 y la base descartable wellq_mobile_schema_test, sin cambiar apps/api/.env ni el puerto habitual 3000. No ejecutar seeds sobre Railway para repetir la visualización. Ver apps/mobile/evidence/v020/README.md para resultados y pendientes.

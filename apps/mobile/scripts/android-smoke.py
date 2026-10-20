@@ -13,7 +13,7 @@ def ui():
 def node(label,editable=False):
  for attempt in range(3):
   for el in ui().iter('node'):
-   if el.get('content-desc')==label and (not editable or el.get('class')=='android.widget.EditText'):
+   if (el.get('content-desc')==label or el.get('text')==label) and (not editable or el.get('class')=='android.widget.EditText'):
     _,top,_,bottom=map(int,re.findall(r'\d+',el.get('bounds')))
     if bottom-top>=35:return el
   run('shell','input','swipe','540','1600','540','800','250')
@@ -39,7 +39,7 @@ choices=[el for el in tree.iter('node') if el.get('content-desc')=='Continuar'];
 tap(choices[0]);wait_text('Hola,');capture('welcome');print('Bienvenida OK',flush=True)
 run('shell','am','force-stop','com.wellq.capstone');run('shell','am','start','-n','com.wellq.capstone/.MainActivity')
 wait_text('Hola,');capture('restored');print('Restauracion sin credenciales OK',flush=True)
-tap(node('Cerrar sesi\u00f3n'));wait_text('Bienvenido a WellQ')
+tap(node('Mi cuenta'));tap(node('Cerrar sesi\u00f3n'));wait_text('Bienvenido a WellQ')
 # On smaller viewports the recovery link may require a short scroll.
 try:control=node('Olvid\u00e9 mi contrase\u00f1a')
 except RuntimeError:

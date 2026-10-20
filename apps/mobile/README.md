@@ -32,7 +32,7 @@ npm.cmd run apk:preview --prefix apps/mobile
 5. Sin red solo se muestra la última bienvenida informativa. No se consideran actuales sus permisos; se revalidan al reconectar. Cerrar sesión borra el acceso local; la revocación remota requiere conexión.
 6. Para recuperar acceso: solicitar código, escribir los seis dígitos y definir una nueva contraseña de 12–128 caracteres. El código vence en diez minutos, tiene cinco intentos y se reenvía después de 60 segundos. La recuperación cierra las sesiones de la cuenta en todas sus clínicas.
 
-Exámenes, cargas y sincronización documental se desarrollan después. No hay botones ni estadísticas simulando esas capacidades.
+Desde 0.2.0 se consultan exámenes y documentos reales. La carga móvil, SQLite y sincronización se desarrollan en etapas posteriores.
 
 ## API y datos sintéticos
 
@@ -91,7 +91,7 @@ Para un **APK autónomo de demostración**:
 npm.cmd run apk:demo --prefix apps/mobile
 ```
 
-Salida: `apps/mobile/artifacts/wellq-0.1.0-demo.apk`, con firma de desarrollo. Este comando fuerza demo incluso si el `.env` dice false. Para otro APK con autenticación real de desarrollo, poner false y usar `apk:preview`. El comando `apk` / `apk:production` siempre desactiva demo y exige la URL HTTPS de producción. Un APK instalado no cambia al editar el `.env`: hay que recompilar y reinstalar. Las credenciales demo no existen en el backend ni otorgan acceso real.
+Salida: `apps/mobile/artifacts/wellq-0.2.0-demo.apk`, con firma de desarrollo. Este comando fuerza demo incluso si el `.env` dice false. Para otro APK con autenticación real de desarrollo, poner false y usar `apk:preview`. El comando `apk` / `apk:production` siempre desactiva demo y exige la URL HTTPS de producción. Un APK instalado no cambia al editar el `.env`: hay que recompilar y reinstalar. Las credenciales demo no existen en el backend ni otorgan acceso real.
 
 ## Acceso real a Railway (20 de octubre de 2026)
 
@@ -118,3 +118,24 @@ Cuentas sintéticas ya existentes en Railway, verificadas por API:
 | patient1@example.com | Demo1234! | Selección entre Clínica A y B; nombre según clínica. |
 
 Estos usuarios son de prueba. La cuenta demo@wellq.app solo existe en el mockup. Para crear otra cuenta PATIENT con contraseña propia mediante la API administrativa, ver [procedimiento de alta en Railway](../api/RAILWAY.md#crear-un-paciente-adicional-de-prueba). El alta no crea ficha clínica: muestra el aviso de registro pendiente en la bienvenida. No reejecutar el seed ni restablecer cuentas existentes para esta validación.
+
+## Segunda entrega: exámenes y Mi cuenta (0.2.0)
+
+Las pestañas inferiores son Inicio, Mis exámenes y Mi cuenta. El listado pagina de 20 en 20, permite actualizar y filtrar por tipo y fechas (AAAA-MM-DD). El detalle ofrece la versión actual, el historial y acceso al documento de cada versión. Una ficha pendiente muestra un aviso; los errores de red o almacenamiento no se presentan como lista vacía.
+
+Mi cuenta permite cambiar el nombre de presentación de la clínica actual, seleccionar Oscuro/Claro, cambiar de clínica y cerrar sesión. El correo se muestra con instrucciones para contactar a la clínica: no se envía ninguna solicitud. La apariencia se guarda localmente y conserva el modo oscuro como valor inicial.
+
+El visor incorpora PDF.js local en WebView; PDF, PNG y JPEG se validan con MIME, tamaño, firma y SHA-256. Los PDF tienen controles de página y zoom. Descargar permite elegir una carpeta de Android; cancelar no es un error. Las copias guardadas por el usuario permanecen en esa carpeta; los temporales privados del visor se limpian al salir, cambiar de contexto y al arrancar. No existe caché documental offline.
+
+`npm run prepare:viewer` genera `src/documents/pdf-runtime.generated.ts` desde la dependencia fijada en package-lock. Este archivo no se versiona. Los comandos de inicio, lint, tipos, tests y compilación lo generan automáticamente; CI también lo prepara después de npm ci. No requiere CDN.
+
+Compilar para Railway:
+
+```powershell
+npm.cmd run check:production --prefix apps/mobile
+npm.cmd run apk --prefix apps/mobile
+```
+
+Salida: `apps/mobile/artifacts/wellq-0.2.0-production.apk`, versionCode 2 y firma de desarrollo. El APK local usa `apk:preview` con WELLQ_DEMO_MODE=false y EXPO_PUBLIC_API_URL configurada antes de compilar (10.0.2.2:3102 para la API aislada en el emulador; una IP LAN para teléfono). Nunca incluir credenciales PostgreSQL en la app. El perfil de producción exige HTTPS y desactiva demo.
+
+Evidencia de archivos y recorridos: [v020](evidence/v020/README.md). Las cuatro versiones ficticias de Railway se conservan para la cuenta patient2@example.com. El script de carga requiere WELLQ_SYNTHETIC_TESTS=1, SMOKE_API_URL y SMOKE_PASSWORD, y crea cuatro versiones por ejecución: no repetirlo solo para visualizar los documentos ya existentes.
