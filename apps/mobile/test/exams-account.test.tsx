@@ -1,0 +1,18 @@
+import React from "react";
+import {fireEvent,render,screen,waitFor} from "@testing-library/react-native";
+import Exams from "../app/(tabs)/exams";
+import Account from "../app/(tabs)/account";
+import {useAuth} from "../src/auth/context";
+import {ThemeProvider} from "../src/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+jest.mock("expo-router",()=>({router:{push:jest.fn()}}));
+jest.mock("../src/auth/context",()=>({useAuth:jest.fn()}));
+const request=jest.fn();const updateName=jest.fn();const logout=jest.fn();
+const profile={patientId:"own-record",user:{id:"u",email:"qa@example.com"},clinic:{id:"c",name:"Clínica propia"},displayName:"Nombre QA",access:"READ_ONLY",patientRecordPending:false};
+beforeEach(()=>{request.mockReset();updateName.mockReset();(useAuth as jest.Mock).mockReturnValue({profile,clinics:[],offline:false,manager:{contextKey:()=>"u:c",request,updateName,logout}});request.mockImplementation(async path=>path==="/exam-types"?{items:[{id:"type",name:"Laboratorio"}]}:{items:[],total:0});});
+it("shows an empty list only after a successful request",async()=>{await render(<Exams/>);expect(await screen.findByText("No hay exámenes para mostrar.")).toBeTruthy();expect(request).toHaveBeenCalledWith("/patients/own-record/exams?limit=20&offset=0");});
+it("reports network failures without presenting an empty list",async()=>{request.mockRejectedValue(new Error("Red no disponible"));await render(<Exams/>);expect(await screen.findByText("Red no disponible")).toBeTruthy();expect(screen.queryByText("No hay exámenes para mostrar.")).toBeNull();});
+it("does not request data when the patient record is pending",async()=>{(useAuth as jest.Mock).mockReturnValue({profile:{...profile,patientId:null},manager:{contextKey:()=>"u:c"},offline:false});await render(<Exams/>);expect(screen.getByText(/completar tu ficha/)).toBeTruthy();expect(request).not.toHaveBeenCalled();});
+it("validates date ranges before applying filters",async()=>{await render(<Exams/>);await screen.findByText("No hay exámenes para mostrar.");await fireEvent.press(screen.getByText("Filtrar exámenes"));await fireEvent.changeText(screen.getByLabelText("Desde (AAAA-MM-DD)"),"2026-12-01");await fireEvent.changeText(screen.getByLabelText("Hasta (AAAA-MM-DD)"),"2026-01-01");await fireEvent.press(screen.getByText("Aplicar filtros"));expect(screen.getByText(/no puede ser posterior/)).toBeTruthy();});
+it("edits only the display name and shows instructions rather than a fake email request",async()=>{updateName.mockResolvedValue(undefined);await render(<Account/>);await fireEvent.changeText(screen.getByLabelText("Nombre en esta clínica"),"  Mi nombre  ");await fireEvent.press(screen.getByText("Guardar nombre"));await waitFor(()=>expect(updateName).toHaveBeenCalledWith("Mi nombre"));expect(screen.getByText(/no envía ni registra/)).toBeTruthy();});
+it("persists light mode locally",async()=>{await AsyncStorage.clear();await render(<ThemeProvider><Account/></ThemeProvider>);await fireEvent.press(screen.getByText("Claro"));await waitFor(()=>expect(AsyncStorage.setItem).toHaveBeenCalledWith("wellq.appearance.v1","light"));expect(screen.getByText("Claro · seleccionado")).toBeTruthy();});

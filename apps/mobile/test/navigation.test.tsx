@@ -1,8 +1,10 @@
 import React from "react";
 import { renderRouter, screen } from "expo-router/testing-library";
+import TabLayout from "../app/(tabs)/_layout";
+import Account from "../app/(tabs)/account";
 import Layout from "../app/_layout";
 import Login from "../app/login";
-import Welcome from "../app/index";
+import Welcome from "../app/(tabs)/index";
 import Clinics from "../app/clinics";
 import Recovery from "../app/recovery";
 import { useAuth } from "../src/auth/context";
@@ -19,10 +21,14 @@ jest.mock("expo-font", () => ({
 }));
 const routes = {
   _layout: Layout,
-  index: Welcome,
+  "(tabs)/_layout": TabLayout,
+  "(tabs)/index": Welcome,
+  "(tabs)/account": Account,
+  "(tabs)/exams": () => null,
   login: Login,
   clinics: Clinics,
   recovery: Recovery,
+  "document/[examId]/[versionId]": () => null,
 };
 it("redirects a protected welcome deep link to login without a session", async () => {
   (useAuth as jest.Mock).mockReturnValue({

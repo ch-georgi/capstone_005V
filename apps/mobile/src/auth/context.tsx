@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { AppState } from "react-native";
 import * as SecureStore from "expo-secure-store";
+import { clearTemporaryDocuments } from "../documents/files";
 import { api } from "./api";
 import { demoMode } from "./mode";
 import { createDemoApi, createDemoStorage } from "./demo";
@@ -22,11 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }),
   );
   useEffect(() => {
+    clearTemporaryDocuments();
     void manager.restore();
+    let previous="";
+    const stop=manager.subscribe(()=>{const profile=manager.getSnapshot().profile;const key=profile?`${profile.user.id}:${profile.clinic.id}`:"";if(previous&&previous!==key)clearTemporaryDocuments();previous=key;});
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") void manager.revalidate();
     });
-    return () => sub.remove();
+    return () => {sub.remove();stop();clearTemporaryDocuments();};
   }, [manager]);
   return <Context.Provider value={manager}>{children}</Context.Provider>;
 }

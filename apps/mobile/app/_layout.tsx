@@ -1,14 +1,16 @@
+import { ThemeProvider, useTheme } from "../src/theme";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { ActivityIndicator, Text, View } from "react-native";
 import { AuthProvider, useAuth } from "../src/auth/context";
 function Routes() {
-  const { status } = useAuth();
+  const { status, profile } = useAuth();
+  const { colors } = useTheme();
   if (status === "loading")
     return (
       <View
-        style={{ flex: 1, backgroundColor: "#000", justifyContent: "center" }}
+        style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center" }}
       >
         <ActivityIndicator
           color="#20F3A2"
@@ -18,9 +20,10 @@ function Routes() {
     );
   return (
     <Stack
+      key={`${profile?.user.id}:${profile?.clinic.id}`}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#000" },
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Protected guard={status === "anonymous"}>
@@ -28,7 +31,8 @@ function Routes() {
         <Stack.Screen name="recovery" />
       </Stack.Protected>
       <Stack.Protected guard={status === "authenticated"}>
-        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="document/[examId]/[versionId]" options={{presentation:"fullScreenModal"}} />
       </Stack.Protected>
       <Stack.Protected
         guard={status === "selection" || status === "authenticated"}
@@ -69,9 +73,8 @@ export default function Layout() {
       </View>
     );
   return (
-    <AuthProvider>
-      <StatusBar style="light" />
-      <Routes />
-    </AuthProvider>
+    <ThemeProvider><AuthProvider><ThemedRoutes /></AuthProvider></ThemeProvider>
   );
 }
+
+function ThemedRoutes(){const {mode}=useTheme();return <><StatusBar style={mode==="dark"?"light":"dark"}/><Routes/></>;}

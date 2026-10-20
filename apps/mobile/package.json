@@ -63,7 +63,10 @@
     "preapk:preview": "npm run prepare:viewer",
     "preapk:production": "npm run prepare:viewer",
     "preapk:demo": "npm run prepare:viewer",
-    "preexport:android": "npm run prepare:viewer"
+    "preexport:android": "npm run prepare:viewer",
+    "prelint": "npm run prepare:viewer",
+    "pretypecheck": "npm run prepare:viewer",
+    "pretest": "npm run prepare:viewer"
   },
   "private": true
 }

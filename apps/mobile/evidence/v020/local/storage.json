@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-20T20:20:13.745Z",
+  "apiUrl": "http://localhost:3102/api/v1",
+  "runId": "20261020T202013744Z",
+  "files": [
+    {
+      "fileName": "wellq-prueba-v1.pdf",
+      "examId": "73b426a8-a995-43d8-b453-3fcf1790fbe2",
+      "versionId": "815dc39c-3dd5-47a9-bbb2-42dddb3c2d9d",
+      "versionNumber": 1,
+      "bytes": 2266,
+      "sha256": "0b86117e0c0fa54148f2d9fefedced6335f3ba51e596daefc2f3e1d1628f700a",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    },
+    {
+      "fileName": "wellq-prueba-v2.pdf",
+      "examId": "73b426a8-a995-43d8-b453-3fcf1790fbe2",
+      "versionId": "1e864844-6637-4475-9b45-9f06b4e6ec84",
+      "versionNumber": 2,
+      "bytes": 2266,
+      "sha256": "403908a95f3dede1c49766d44cfbfdff0259e8222543d4bdd2d40ec21a89c60b",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    },
+    {
+      "fileName": "wellq-prueba.png",
+      "examId": "85c532ad-12e7-4574-8216-8bd0c87c314c",
+      "versionId": "bf33d31e-5258-4986-8d4c-53954774c115",
+      "versionNumber": 1,
+      "bytes": 10744,
+      "sha256": "2c282077ef8145fe0177c979469b208e123f2492d27d91a5399eb6ed03ca2402",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    },
+    {
+      "fileName": "wellq-prueba.jpg",
+      "examId": "130e3f40-1489-4d2a-a7ff-b86ffadbfe46",
+      "versionId": "61a9bb04-d15b-4fd6-9da2-17f342965b7c",
+      "versionNumber": 1,
+      "bytes": 18684,
+      "sha256": "6665c73868983baed6ab01328c69f210aaff3eeae8a686a3d54c8b5bfbf2b093",
+      "uploadHttp": 201,
+      "idempotent": true,
+      "view": true,
+      "download": true
+    }
+  ],
+  "reopenedSession": true,
+  "twoVersionsPersisted": true,
+  "otherPatientHttp": 404,
+  "nameUpdate": true,
+  "nameRestored": true
+}
