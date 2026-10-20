@@ -9,6 +9,8 @@ if(!password)throw new Error("Falta SMOKE_PASSWORD");
 const sha=bytes=>createHash("sha256").update(bytes).digest("hex");
 const id=new Date().toISOString().replace(/[-:.]/g,"");
 const report={date:new Date().toISOString(),apiUrl:base,runId:id,files:[]};
+const out=resolve(root,"apps/mobile/evidence/v020",base.includes("localhost")?"local":"production");
+function saveReport(){mkdirSync(out,{recursive:true});writeFileSync(resolve(out,"storage.json"),JSON.stringify(report,null,2)+"\n");}
 let refresh;
 const check=(condition,message)=>{if(!condition)throw new Error(message);};
 async function json(path,body,token,method){const response=await fetch(base+path,{method:method??(body?"POST":"GET"),headers:{"content-type":"application/json",...(token?{authorization:`Bearer ${token}`}:{})},...(body?{body:JSON.stringify(body)}:{})});const value=await response.json().catch(()=>null);check(response.ok,`${path}: HTTP ${response.status} ${value?.code??""}`);return value;}
@@ -28,8 +30,9 @@ async function login(mail=email){const value=await json("/auth/mobile/login",{em
  const response=await send();const result=await response.json();check(response.status===201,`Carga: HTTP ${response.status} ${result.code??""}`);check(result.versionNumber===versionNumber,"Versión inesperada");
  const replay=await send();check(replay.status===200&&(await replay.json()).replayed,"Falló idempotencia");
  const row={fileName,examId,versionId,versionNumber,bytes:bytes.length,sha256:sha(bytes),uploadHttp:201,idempotent:true};
+ report.files.push(row);saveReport();
  for(const action of ["view","download"]){const delivered=await fetch(`${base}/exams/${examId}/versions/${versionId}/${action}`,{headers:{authorization:`Bearer ${session.accessToken}`}});check(delivered.status===200,`${action}: HTTP ${delivered.status}`);const recovered=Buffer.from(await delivered.arrayBuffer());check(recovered.length===bytes.length&&sha(recovered)===sha(bytes),"Contenido recuperado distinto");row[action]=true;}
- report.files.push(row);console.log(`${fileName}: carga, idempotencia y bytes recuperados OK`);
+ saveReport();console.log(`${fileName}: carga, idempotencia y bytes recuperados OK`);
  return row;
  }
  const first=randomUUID();await upload("wellq-prueba-v1.pdf",first);await upload("wellq-prueba-v2.pdf",first,"UPLOAD_VERSION",2);await upload("wellq-prueba.png",randomUUID());await upload("wellq-prueba.jpg",randomUUID());
@@ -41,6 +44,6 @@ async function login(mail=email){const value=await json("/auth/mobile/login",{em
  const other=await json("/auth/mobile/login",{email:"patient3@example.com",password});check(other.status==="AUTHENTICATED","Otra cuenta de prueba no disponible");
  try{const denied=await fetch(base+`/exams/${first}`,{headers:{authorization:`Bearer ${other.session.accessToken}`}});check(denied.status===404,"Se permitió leer a otro paciente");report.otherPatientHttp=denied.status;}finally{await json("/auth/logout",{refreshToken:other.session.refreshToken});}
  if(profile.patientId!==undefined){const before=profile.displayName;try{const renamed=await json("/auth/me",{displayName:before+" QA"},session.accessToken,"PATCH");check(renamed.displayName===before+" QA","No se actualizó el nombre");report.nameUpdate=true;}finally{await json("/auth/me",{displayName:before},session.accessToken,"PATCH");report.nameRestored=true;}}
- const out=resolve(root,"apps/mobile/evidence/v020",base.includes("localhost")?"local":"production");mkdirSync(out,{recursive:true});writeFileSync(resolve(out,"storage.json"),JSON.stringify(report,null,2)+"\n");console.log("Almacenamiento real y aislamiento verificados.");
+ saveReport();console.log("Almacenamiento real y aislamiento verificados.");
  }finally{if(refresh)await json("/auth/logout",{refreshToken:refresh});}
 })().catch(error=>{console.error(error.message);process.exitCode=1;});

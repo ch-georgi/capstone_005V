@@ -291,3 +291,7 @@ actualizados junto a cada endpoint. Swagger local no implica API desplegada.
 Ver [contratos de sesión y recuperación](MOBILE_AUTH.md) y [guía de la app](../mobile/README.md). Swagger incluye todas las rutas móviles y esquemas de respuesta.
 
 Para separar desarrollo local y el APK conectado a Railway, ver [guía de despliegue y entornos](RAILWAY.md).
+
+### Perfil móvil para consulta documental
+
+El perfil móvil incorpora `patientId` de la clínica autenticada (o null para ficha pendiente). `PATCH /api/v1/auth/me` permite al paciente editar únicamente el nombre de presentación de esa membresía, con 1–100 caracteres recortados. No modifica correo ni ficha clínica. Ver [contratos y reglas](MOBILE_AUTH.md#nombre-y-ficha-del-paciente-móvil-020).

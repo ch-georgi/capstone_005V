@@ -14,7 +14,7 @@ export const api: Api = {
     const timeout = setTimeout(()=>controller.abort(),30000);
     try {
       const response = await fetch(`${base}${path}`, { headers: { Authorization:`Bearer ${token}` }, signal:controller.signal });
-      if(!response.ok) { const error=await response.json().catch(()=>null); throw new ApiError(response.status,error?.code??"FILE_ERROR",error?.message??"No se pudo recuperar el documento."); }
+      if(!response.ok) { const error=await response.json().catch(()=>null); throw new ApiError(response.status,error?.code??"FILE_ERROR",error?.code==="STORAGE_OBJECT_MISSING"?"El archivo no está disponible en el almacenamiento de la clínica. Solicita que lo vuelvan a cargar.":typeof error?.message==="string"?error.message:"No se pudo recuperar el documento."); }
       const size=Number(response.headers.get("content-length")??0);
       if(size>10000000) throw new ApiError(413,"FILE_TOO_LARGE","El documento supera el tamaño permitido.");
       const bytes=new Uint8Array(await response.arrayBuffer());

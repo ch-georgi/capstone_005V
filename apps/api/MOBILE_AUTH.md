@@ -39,13 +39,14 @@ Prefijo `/api/v1`. Swagger: `/api/docs`, documento `/api/openapi.json` cuando ha
 | POST /auth/mobile/select-clinic | selectionToken, clinicId | Session |
 | POST /auth/mobile/switch-clinic | Bearer móvil; clinicId | Session nueva; revoca la anterior y conserva el plazo absoluto |
 | GET /auth/me | Bearer móvil | Profile vigente |
+| PATCH /auth/me | Bearer móvil PATIENT; displayName | Profile con nombre de la membresía actual actualizado |
 | POST /auth/refresh | refreshToken | Session con refresh rotativo |
 | POST /auth/logout | refreshToken | 204; idempotente, no exige JWT vigente |
 | POST /auth/password/forgot | email | 202; challengeId, message genérico, resendAfter:60 |
 | POST /auth/password/verify | challengeId, code | resetToken, expiresIn:300 |
 | POST /auth/password/reset | resetToken, password | 204; revoca credenciales de todas las sesiones |
 
-`Session`: accessToken, refreshToken, tokenType=Bearer, expiresIn (máximo 900 segundos y limitado por el plazo restante), sessionExpiresAt UTC y profile. `Profile`: user{id,email}, clinic{id,name}, displayName, role=PATIENT, access=READ_ONLY/READ_WRITE, patientRecordPending y clinics autorizadas. Cada opción de clínica incluye id, name, displayName, access y patientRecordPending.
+`Session`: accessToken, refreshToken, tokenType=Bearer, expiresIn (máximo 900 segundos y limitado por el plazo restante), sessionExpiresAt UTC y profile. `Profile`: user{id,email}, clinic{id,name}, displayName, role=PATIENT, access=READ_ONLY/READ_WRITE, patientRecordPending, patientId (UUID de la ficha propia en la clínica actual, o null) y clinics autorizadas. Cada opción de clínica incluye id, name, displayName, access y patientRecordPending.
 
 ## Seguridad y compatibilidad
 
@@ -75,3 +76,9 @@ npm.cmd run test:integration --prefix apps/api
 ```
 
 La suite móvil usa PostgreSQL real y reemplaza solo el envío de correo por una captura en memoria. Incluye aislamiento, desafíos, expiraciones, rotación concurrente, replay, logout, versión de credenciales, intentos/cooldown y recuperación. Mailpit permite además probar la entrega SMTP local sin enviar correos reales.
+
+## Nombre y ficha del paciente móvil (0.2.0)
+
+`patientId` también está presente en login, selección/cambio de clínica y renovación. Se resuelve en servidor desde usuario y clínica autenticados; permite consultar la ficha histórica autorizada. Una ficha pendiente devuelve null. La app no consulta el listado administrativo de pacientes.
+
+`PATCH /api/v1/auth/me` acepta exclusivamente `{ "displayName": "Nombre" }`. Recorta extremos y exige 1–100 caracteres. Modifica solo la membresía de paciente de la clínica del JWT móvil, incluso con acceso clínico READ_ONLY. No cambia correo ni el nombre de la ficha. Registra una auditoría de campos modificados sin los valores anteriores/nuevos. Reutiliza el esquema existente; esta ampliación no requiere migración.

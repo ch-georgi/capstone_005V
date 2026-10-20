@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-20",
+  "device": "Android 15 emulator x86_64, emulator-5580",
+  "version": "0.2.0",
+  "login": true,
+  "tabs": true,
+  "examList": true,
+  "detail": true,
+  "versions": true,
+  "pdfTwoPages": true,
+  "png": true,
+  "jpeg": true,
+  "downloadSavedBytesAndSha256Match": true,
+  "lightAndDark": true,
+  "themePersistedAfterRestart": true,
+  "sessionRestored": true,
+  "physicalDevice": "pending",
+  "apiUrl": "http://10.0.2.2:3102/api/v1",
+  "pdfZoom": true,
+  "pickerCancellation": true
+}

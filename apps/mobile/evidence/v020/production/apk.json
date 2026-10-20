@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "versionCode": 2,
+  "minSdk": 29,
+  "demoMode": false,
+  "apiUrl": "https://capstone005v-production.up.railway.app/api/v1",
+  "cleartextManifest": "A: android:usesCleartextTraffic(0x010104ec)=(type 0x12)0x0",
+  "sha256": "48041e24f1b5a4ad420ddcc2eed3951f76327f46d3b9be472ab48a3e31c7b7a7",
+  "bytes": 90957577,
+  "signing": "development"
+}

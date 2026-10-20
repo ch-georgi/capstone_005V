@@ -226,3 +226,17 @@ it("does not deliver an old account response after logout",async()=>{
  const result=state.manager.request("/exams/slow");await Promise.resolve();await state.manager.clear();pending.resolve({private:true});
  await expect(result).rejects.toMatchObject({code:"CONTEXT_CHANGED"});
 });
+
+it("waits for a rotating refresh before switching clinic", async () => {
+  const state = await loggedIn();
+  const pending = deferred<Session>();
+  state.request.mockReturnValueOnce(pending.promise).mockResolvedValueOnce(makeSession("b"));
+  const refresh = state.manager.refresh();
+  const switching = state.manager.switchClinic("b");
+  expect(state.request).not.toHaveBeenCalledWith("/auth/mobile/switch-clinic", expect.anything(), expect.anything());
+  const renewed = makeSession(); renewed.accessToken = "rotated-access";
+  pending.resolve(renewed);
+  await Promise.all([refresh, switching]);
+  expect(state.request).toHaveBeenLastCalledWith("/auth/mobile/switch-clinic", { clinicId: "b" }, "rotated-access");
+  expect(state.manager.getSnapshot().profile?.clinic.id).toBe("b");
+});

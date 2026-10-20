@@ -17,3 +17,7 @@ Queda la comprobación en teléfono físico, con teclado/tamaño de texto/TalkBa
 ## Acceso real desplegado (20 de octubre de 2026)
 
 Ver [evidencia contra Railway](production/README.md): APK con demo desactivado, login real con las dos cuentas sintéticas, sesión persistente, cambio de clínica y logout validados en Android. La evidencia local del 15 de octubre y la de modo demo se conservan como registros históricos.
+
+## Segunda entrega 0.2.0
+
+Ver [pruebas documentales, temas y Mi cuenta](v020/README.md): almacenamiento local y Railway, APK 0.2.0, capturas de ambos temas y comprobaciones pendientes.

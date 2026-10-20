@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "versionCode": 2,
+  "minSdk": 29,
+  "demoMode": false,
+  "apiUrl": "http://10.0.2.2:3102/api/v1",
+  "cleartextManifest": "A: android:usesCleartextTraffic(0x010104ec)=(type 0x12)0xffffffff",
+  "sha256": "e686e6626d6fa74935c9e98675591b58ca52c5b3a974e5b8894dec0a58104350",
+  "bytes": 90957561,
+  "signing": "development"
+}

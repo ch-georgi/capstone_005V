@@ -16,3 +16,27 @@ it("does not request data when the patient record is pending",async()=>{(useAuth
 it("validates date ranges before applying filters",async()=>{await render(<Exams/>);await screen.findByText("No hay exámenes para mostrar.");await fireEvent.press(screen.getByText("Filtrar exámenes"));await fireEvent.changeText(screen.getByLabelText("Desde (AAAA-MM-DD)"),"2026-12-01");await fireEvent.changeText(screen.getByLabelText("Hasta (AAAA-MM-DD)"),"2026-01-01");await fireEvent.press(screen.getByText("Aplicar filtros"));expect(screen.getByText(/no puede ser posterior/)).toBeTruthy();});
 it("edits only the display name and shows instructions rather than a fake email request",async()=>{updateName.mockResolvedValue(undefined);await render(<Account/>);await fireEvent.changeText(screen.getByLabelText("Nombre en esta clínica"),"  Mi nombre  ");await fireEvent.press(screen.getByText("Guardar nombre"));await waitFor(()=>expect(updateName).toHaveBeenCalledWith("Mi nombre"));expect(screen.getByText(/no envía ni registra/)).toBeTruthy();});
 it("persists light mode locally",async()=>{await AsyncStorage.clear();await render(<ThemeProvider><Account/></ThemeProvider>);await fireEvent.press(screen.getByText("Claro"));await waitFor(()=>expect(AsyncStorage.setItem).toHaveBeenCalledWith("wellq.appearance.v1","light"));expect(screen.getByText("Claro · seleccionado")).toBeTruthy();});
+
+it("applies selected type and valid dates to the patient-scoped request", async () => {
+  await render(<Exams />);
+  await screen.findByText("No hay exámenes para mostrar.");
+  await fireEvent.press(screen.getByText("Filtrar exámenes"));
+  await fireEvent.press(await screen.findByText("Laboratorio"));
+  await fireEvent.changeText(screen.getByLabelText("Desde (AAAA-MM-DD)"), "2026-01-01");
+  await fireEvent.changeText(screen.getByLabelText("Hasta (AAAA-MM-DD)"), "2026-10-20");
+  await fireEvent.press(screen.getByText("Aplicar filtros"));
+  await waitFor(() => expect(request).toHaveBeenCalledWith("/patients/own-record/exams?limit=20&offset=0&examTypeId=type&from=2026-01-01&to=2026-10-20"));
+});
+it("opens the next page without mixing records from the previous one", async () => {
+  request.mockImplementation(async path => path === "/exam-types" ? { items: [] } : {
+    items: Array.from({ length: path.includes("offset=20") ? 1 : 20 }, (_, index) => ({
+      id: String(index), title: `Examen ${path.includes("offset=20") ? 21 : index + 1}`,
+      examDate: "2026-10-20", examType: { name: "Laboratorio" }, latestVersion: null,
+    })), total: 21,
+  });
+  await render(<Exams />);
+  await fireEvent.press(await screen.findByText("Siguiente"));
+  expect(await screen.findByText("Examen 21")).toBeTruthy();
+  expect(screen.queryByText("Examen 1")).toBeNull();
+  expect(request).toHaveBeenCalledWith("/patients/own-record/exams?limit=20&offset=20");
+});

@@ -262,6 +262,7 @@ export class SessionManager {
     }
   }
   async switchClinic(clinicId: string) {
+    if (this.refreshing) await this.refreshing;
     if (!this.session || this.expiresAt <= Date.now() + 30000)
       await this.refresh();
     const generation = ++this.generation;
