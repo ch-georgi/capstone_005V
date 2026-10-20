@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme, palettes } from "./theme";
 import { demoMode } from "./auth/mode";
 import {
   ActivityIndicator,
@@ -15,20 +16,12 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
-export const colors = {
-  background: "#000000",
-  surface: "#121C20",
-  green: "#20F3A2",
-  cyan: "#32BEDD",
-  gray: "#455059",
-  white: "#F5F7F8",
-  muted: "#BCC6CA",
-  error: "#FFB7B7",
-};
-export function Screen({ children }: { children: React.ReactNode }) {
+export const colors = palettes.dark;
+export function Screen({ children, center = true }: { children: React.ReactNode; center?: boolean }) {
+  const { colors } = useTheme();
   return (
     <LinearGradient
-      colors={["#000000", "#00251B", "#000000"]}
+      colors={[colors.background, colors.middle, colors.background]}
       locations={[0, 0.48, 1]}
       style={styles.fill}
     >
@@ -38,7 +31,7 @@ export function Screen({ children }: { children: React.ReactNode }) {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <ScrollView
-            contentContainerStyle={styles.screen}
+            contentContainerStyle={[styles.screen, !center && { justifyContent: "flex-start" }]}
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.content}>
@@ -52,9 +45,10 @@ export function Screen({ children }: { children: React.ReactNode }) {
   );
 }
 export function Logo() {
+  const { mode } = useTheme();
   return (
     <Image
-      source={require("../assets/wellq-logo.png")}
+      source={mode === "dark" ? require("../assets/wellq-logo.png") : require("../assets/wellq-logo-light.png")}
       accessibilityLabel="WellQ. Predict. Prevent. Perform."
       resizeMode="contain"
       style={styles.logo}
@@ -62,8 +56,9 @@ export function Logo() {
   );
 }
 export function Heading({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
   return (
-    <Text accessibilityRole="header" style={styles.heading}>
+    <Text accessibilityRole="header" style={[styles.heading,{color:colors.white}]}>
       {children}
     </Text>
   );
@@ -75,24 +70,27 @@ export function Copy({
   children: React.ReactNode;
   muted?: boolean;
 }) {
+  const { colors } = useTheme();
   return (
-    <Text style={[styles.copy, muted && { color: colors.muted }]}>
+    <Text style={[styles.copy, { color: muted ? colors.muted : colors.white }]}>
       {children}
     </Text>
   );
 }
 export function Badge({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.badge}>{children}</Text>;
+  const { colors } = useTheme();
+  return <Text style={[styles.badge,{color:colors.green}]}>{children}</Text>;
 }
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label,{color:colors.white}]}>{label}</Text>
       <TextInput
         {...props}
         accessibilityLabel={label}
         placeholderTextColor="#68757B"
-        style={[styles.input, props.style]}
+        style={[styles.input, { backgroundColor:colors.input, color:colors.ink, borderWidth:1,borderColor:colors.gray }, props.style]}
       />
     </View>
   );
@@ -110,6 +108,7 @@ export function Button({
   secondary?: boolean;
   disabled?: boolean;
 }) {
+  const { colors, mode } = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
@@ -118,14 +117,15 @@ export function Button({
       disabled={disabled || busy}
       style={({ pressed }) => [
         styles.button,
-        secondary && styles.secondary,
+        { backgroundColor:colors.green },
+        secondary && [styles.secondary,{ backgroundColor:colors.surface,borderColor:colors.gray }],
         (pressed || disabled || busy) && { opacity: 0.65 },
       ]}
     >
       {busy ? (
-        <ActivityIndicator color={secondary ? colors.white : "#001D13"} />
+        <ActivityIndicator color={secondary ? colors.white : mode === "light" ? "#FFFFFF" : "#001D13"} />
       ) : (
-        <Text style={[styles.buttonText, secondary && { color: colors.white }]}>
+        <Text style={[styles.buttonText, {color: secondary ? colors.white : mode === "light" ? "#FFFFFF" : "#001D13"}]}>
           {title}
         </Text>
       )}
@@ -139,25 +139,28 @@ export function Link({
   title: string;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.link}>
-      <Text style={styles.linkText}>{title}</Text>
+      <Text style={[styles.linkText,{color:colors.green}]}>{title}</Text>
     </Pressable>
   );
 }
 export function ErrorMessage({ message }: { message: string }) {
+  const { colors } = useTheme();
   return message ? (
     <Text
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
-      style={styles.error}
+      style={[styles.error,{color:colors.error}]}
     >
       {message}
     </Text>
   ) : null;
 }
 export function Card({ children }: { children: React.ReactNode }) {
-  return <View style={styles.card}>{children}</View>;
+  const { colors } = useTheme();
+  return <View style={[styles.card,{backgroundColor:colors.card,borderColor:colors.border}]}>{children}</View>;
 }
 export const styles = StyleSheet.create({
   fill: { flex: 1 },

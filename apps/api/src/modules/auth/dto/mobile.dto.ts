@@ -69,3 +69,10 @@ export class ResetPasswordDto {
   @MaxLength(128)
   password!: string;
 }
+
+export class UpdateMobileProfileDto {
+  @ApiProperty({ minLength: 1, maxLength: 100 })
+  @Transform(({ value }: { value: unknown }) => typeof value === "string" ? value.trim() : value)
+  @IsString() @Length(1, 100)
+  displayName!: string;
+}

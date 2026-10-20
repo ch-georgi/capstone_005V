@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-20",
+  "device": "Android 15 emulator x86_64",
+  "apiUrl": "https://capstone005v-production.up.railway.app/api/v1",
+  "demoMode": false,
+  "singleClinicLogin": true,
+  "multiClinicLogin": true,
+  "profileRevalidated": true,
+  "restartRestoresSession": true,
+  "switchAccount": true,
+  "switchClinic": true,
+  "logout": true,
+  "backDoesNotRestoreAuthenticatedScreen": true
+}

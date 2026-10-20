@@ -4,6 +4,7 @@ import { Api, ApiError, Profile, Session, Storage } from "./types";
 export const DEMO_EMAIL = "demo@wellq.app";
 export const DEMO_PASSWORD = "WellQDemo123!";
 const profile: Profile = {
+  patientId: null,
   user: { id: "demo-patient", email: DEMO_EMAIL },
   clinic: { id: "demo-clinic", name: "Clínica WellQ Demo" },
   displayName: "Christopher",
@@ -34,7 +35,7 @@ export function createDemoApi(): Api {
     return session;
   }
   return {
-    async request<T>(path: string, body?: unknown, token?: string): Promise<T> {
+    async request<T>(path: string, body?: unknown, token?: string, method?: string): Promise<T> {
       const input = body as Record<string, unknown> | undefined;
       if (path === "/auth/mobile/login") {
         if (typeof input?.email !== "string" || input.email.trim().toLowerCase() !== DEMO_EMAIL || input.password !== DEMO_PASSWORD)
@@ -46,7 +47,8 @@ export function createDemoApi(): Api {
         throw new ApiError(400, "DEMO_ONLY", "En modo demostración no se envían correos ni se cambian contraseñas. Usa las credenciales de prueba.");
       if (!session) throw new ApiError(401, "UNAUTHORIZED", "Inicia sesión con la cuenta de demostración.");
       if (path === "/auth/refresh" && input?.refreshToken === session.refreshToken) return renew() as T;
-      if (path === "/auth/me" && token === session.accessToken) return session.profile as T;
+      if (path === "/auth/me" && token === session.accessToken) { if(method === "PATCH" && typeof input?.displayName === "string") session.profile.displayName=input.displayName.trim(); return session.profile as T; }
+      if(path.startsWith("/exam-types")) return {items:[]} as T;
       throw new ApiError(400, "DEMO_ONLY", "Esta función no está disponible en el mockup.");
     },
   };

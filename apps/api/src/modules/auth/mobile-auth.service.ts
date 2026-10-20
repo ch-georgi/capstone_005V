@@ -38,6 +38,7 @@ export interface ClinicOption {
   patientRecordPending: boolean;
 }
 export interface MobileProfile {
+  patientId: string | null;
   user: { id: string; email: string };
   clinic: { id: string; name: string };
   displayName: string;
@@ -129,7 +130,9 @@ export class MobileAuthService {
         "MOBILE_PATIENT_REQUIRED",
         "No tienes acceso como paciente. Utiliza el portal web o consulta a tu clínica.",
       );
+    const patient = await tx.patient.findUnique({ where: { userId_clinicId: { userId, clinicId } }, select: { id: true } });
     return {
+      patientId: patient?.id ?? null,
       user: { id: userId, email: user.email },
       clinic: { id: clinic.id, name: clinic.name },
       displayName: clinic.displayName,
@@ -138,6 +141,25 @@ export class MobileAuthService {
       patientRecordPending: clinic.patientRecordPending,
       clinics,
     };
+  }
+  async updateProfile(claims: SessionClaims, displayName: string): Promise<MobileProfile> {
+    if (claims.context !== "TENANT" || !claims.sid) throw denied();
+    return this.db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM clinics WHERE id=${claims.clinicId}::uuid FOR UPDATE`;
+      await this.lock(tx, claims.sub);
+      const context = await this.contexts.resolve(claims, tx);
+      if (context.kind !== "TENANT" || context.role !== TenantRole.PATIENT) throw denied();
+      const key = { userId: claims.sub, clinicId: claims.clinicId };
+      const membership = await tx.userClinic.findUniqueOrThrow({ where: { userId_clinicId: key } });
+      if (membership.displayName !== displayName) {
+        await tx.userClinic.update({ where: { userId_clinicId: key }, data: { displayName } });
+        await tx.auditLog.create({ data: {
+          clinicId: claims.clinicId, actorId: claims.sub, action: "UPDATE",
+          metadata: { entity: "USER_CLINIC_PROFILE", changedFields: ["displayName"] },
+        } });
+      }
+      return this.profile(tx, claims.sub, claims.clinicId);
+    });
   }
   private async issue(
     tx: Prisma.TransactionClient,

@@ -7,6 +7,7 @@ const makeSession = (suffix = "a"): Session => ({
   expiresIn: 900,
   sessionExpiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
   profile: {
+    patientId: null,
     user: { id: "patient", email: "patient@example.com" },
     clinic: { id: suffix, name: `Clínica ${suffix}` },
     displayName: "Paciente",

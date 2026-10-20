@@ -13,3 +13,7 @@ Validación: 15 de octubre de 2026. Datos sintéticos y base de pruebas separada
 Capturas: `login.png`, `clinics.png`, `welcome.png`, `restored.png` y `recovery.png`. Resultados estructurados y huella del APK: `validation.json`. Las imágenes provienen directamente de Android, sin edición.
 
 Queda la comprobación en teléfono físico, con teclado/tamaño de texto/TalkBack de ese dispositivo, y configurar el proveedor SMTP y HTTPS del despliegue. Para compartir el APK con un teléfono hay que recompilar con una URL LAN/HTTPS accesible; `10.0.2.2` corresponde solo al emulador. Guía: [README móvil](../README.md).
+
+## Acceso real desplegado (20 de octubre de 2026)
+
+Ver [evidencia contra Railway](production/README.md): APK con demo desactivado, login real con las dos cuentas sintéticas, sesión persistente, cambio de clínica y logout validados en Android. La evidencia local del 15 de octubre y la de modo demo se conservan como registros históricos.
