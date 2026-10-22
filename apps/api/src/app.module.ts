@@ -1,3 +1,4 @@
+import { SyncModule } from './modules/sync/sync.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { validateEnvironment } from './config/environment';
@@ -14,7 +15,7 @@ import { ExamsModule } from './modules/exams/exams.module';
 
 @Module({ imports: [
   ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
-  PrismaModule, StorageModule, AuthModule, UsersModule, PatientsModule, AuditModule,
+  SyncModule, PrismaModule, StorageModule, AuthModule, UsersModule, PatientsModule, AuditModule,
   UploadsModule, ExamVersionsModule, ExamTypesModule, ExamsModule,
 ] })
 export class AppModule {}

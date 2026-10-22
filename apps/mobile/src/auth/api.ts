@@ -8,6 +8,21 @@ const base = (
     : "http://10.0.2.2:3000/api/v1"
 ).replace(/\/$/, "");
 export const api: Api = {
+  async upload<T>(request: unknown, uri: string, filename: string, mimeType: string, token: string): Promise<T> {
+    if (demoMode) throw new ApiError(400,"DEMO_ONLY","Las cargas requieren conexión real.");
+    const form = new FormData();
+    form.append("request",JSON.stringify(request));
+    form.append("file",{uri,name:filename,type:mimeType} as unknown as Blob);
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),120000);
+    try {
+      const response=await fetch(`${base}/exams/uploads`,{method:"POST",headers:{Authorization:`Bearer ${token}`,Accept:"application/json"},body:form,signal:controller.signal});
+      const result=await response.json().catch(()=>null);
+      if(!response.ok)throw new ApiError(response.status,result?.code??"UPLOAD_ERROR",typeof result?.message==="string"?result.message:"No se pudo subir el documento.");
+      if(!result || typeof result.examId!=="string" || typeof result.versionId!=="string")throw new ApiError(0,"UNCERTAIN_UPLOAD","No pudimos confirmar la carga. Se comprobará con el mismo identificador.");
+      return result as T;
+    }catch(error){if(error instanceof ApiError)throw error;throw new ApiError(0,"NETWORK_ERROR","Carga sin confirmar. Se reintentará sin duplicarla.");}finally{clearTimeout(timer);}
+  },
+
   async file(path, token) {
     if (demoMode) throw new ApiError(400,"DEMO_ONLY","Los documentos requieren conexión real.");
     const controller = new AbortController();

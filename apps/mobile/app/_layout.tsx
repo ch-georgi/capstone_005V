@@ -32,6 +32,9 @@ function Routes() {
       </Stack.Protected>
       <Stack.Protected guard={status === "authenticated"}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="upload" />
+        <Stack.Screen name="pending" />
+        <Stack.Screen name="offline" />
         <Stack.Screen name="document/[examId]/[versionId]" options={{presentation:"fullScreenModal"}} />
       </Stack.Protected>
       <Stack.Protected

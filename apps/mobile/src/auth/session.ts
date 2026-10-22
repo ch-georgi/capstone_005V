@@ -21,6 +21,8 @@ export interface Snapshot {
   clinics: ClinicOption[];
 }
 export class SessionManager {
+  beforeExit?: (allContexts: boolean)=>Promise<void>;
+  afterLogout?: (owner: string)=>Promise<void>;
   private value: Snapshot = {
     status: "loading",
     profile: null,
@@ -44,6 +46,7 @@ export class SessionManager {
     private api: Api,
     private storage: Storage,
   ) {}
+  canUseOffline = () => !!this.saved && Date.parse(this.saved.sessionExpiresAt)>Date.now() && this.value.status==="authenticated";
   getSnapshot = () => this.value;
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -212,6 +215,7 @@ export class SessionManager {
   }
   async revalidate() {
     if (!this.saved) return;
+    if(Date.parse(this.saved.sessionExpiresAt)<=Date.now()){await this.clear();return;}
     const generation = this.generation;
     try {
       if (!this.session || this.expiresAt <= Date.now() + 30000) {
@@ -262,6 +266,7 @@ export class SessionManager {
     }
   }
   async switchClinic(clinicId: string) {
+    await this.beforeExit?.(false);
     if (this.refreshing) await this.refreshing;
     if (!this.session || this.expiresAt <= Date.now() + 30000)
       await this.refresh();
@@ -294,6 +299,12 @@ export class SessionManager {
       return result;
     } catch(error) { throw error; }
   }
+  upload<T>(request: unknown, uri: string, filename: string, mimeType: string) {
+    return this.authorized(token=>{
+      if(!this.api.upload)throw new ApiError(400,"UPLOAD_UNAVAILABLE","Las cargas no estan disponibles.");
+      return this.api.upload<T>(request,uri,filename,mimeType,token);
+    });
+  }
   request<T>(path: string, body?: unknown, method?: string) {
     return this.authorized(token=>this.api.request<T>(path,body,token,method));
   }
@@ -319,6 +330,9 @@ export class SessionManager {
     await this.persist(() => this.storage.deleteItem(KEY));
   }
   async logout() {
+    await this.beforeExit?.(true);
+    const owner=this.value.profile?.user.id;
+    if(owner)await this.afterLogout?.(owner);
     const token = this.saved?.refreshToken;
     await this.clear();
     if (token)

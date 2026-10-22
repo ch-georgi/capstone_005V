@@ -14,6 +14,7 @@ export function validateEnvironment(env: Record<string, unknown>) {
   const audience = required('JWT_AUDIENCE');
   if (env.PASSWORD_RESET_SECRET !== undefined && (typeof env.PASSWORD_RESET_SECRET !== 'string' || Buffer.byteLength(env.PASSWORD_RESET_SECRET) < 32)) throw new Error('PASSWORD_RESET_SECRET must contain at least 32 bytes');
   if (env.SMTP_HOST && !env.PASSWORD_RESET_SECRET) throw new Error('PASSWORD_RESET_SECRET is required when SMTP is configured');
+  if (env.SYNC_CURSOR_SECRET !== undefined && (typeof env.SYNC_CURSOR_SECRET !== 'string' || Buffer.byteLength(env.SYNC_CURSOR_SECRET) < 32)) throw new Error('SYNC_CURSOR_SECRET must contain at least 32 bytes');
   const port = Number(env.PORT ?? 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be between 1 and 65535');
   const swagger = env.SWAGGER_ENABLED;

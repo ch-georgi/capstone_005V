@@ -4,12 +4,9 @@ Esta guía prepara PostgreSQL, MinIO, el esquema de la base de datos y los
 archivos de demostración. Los comandos están escritos para **PowerShell** y se
 ejecutan desde la raíz del repositorio, donde está `docker-compose.yml`.
 
-Actualmente el repositorio incluye persistencia, migraciones, scripts de
-validación y la API HTTP de usuarios/login. Completar esta guía deja listo el
-entorno de datos y permite iniciar la API con Swagger. Consultar también
-[la guía de API y Swagger](apps/api/README.md) para crear el superadmin y probar
-usuarios. Las interfaces
-web/Android y los endpoints clínicos siguen pendientes.
+El repositorio incluye API clinica, almacenamiento documental, aplicacion web y
+Android. Esta guia prepara los servicios locales; consultar tambien la guia de API
+para Swagger y la guia movil para cargas, sincronizacion y documentos offline.
 
 ## 1. Requisitos
 
@@ -331,3 +328,24 @@ y sus datos. Usa la misma carpeta y el mismo nombre de proyecto Compose al retom
 Railway sirve las rutas de perfil (incluido patientId), edición de nombre y consulta documental. Para probar los documentos ficticios conservados, usar patient2@example.com y la contraseña del seed de pruebas documentada en apps/mobile/README.md. Abrir Mis exámenes y los registros marcados [PRUEBA MÓVIL]. Cambiar la apariencia desde Mi cuenta; allí también están cambio de clínica y cierre de sesión.
 
 La prueba aislada local de esta entrega utiliza el puerto 3102 y la base descartable wellq_mobile_schema_test, sin cambiar apps/api/.env ni el puerto habitual 3000. No ejecutar seeds sobre Railway para repetir la visualización. Ver apps/mobile/evidence/v020/README.md para resultados y pendientes.
+
+
+## Android 0.3.0: SQLite y sincronizacion
+
+La app implementa carga de examenes/versiones, metadatos en SQLite v3, pendientes
+sin conexion y copias documentales offline seleccionadas por version. Ver
+`apps/mobile/README.md` y `apps/mobile/evidence/v030/README.md` para validacion.
+
+La API necesita `SYNC_CURSOR_SECRET`, independiente de JWT y de al menos 32 bytes.
+Para desarrollo, agregarlo a `apps/api/.env` sin versionar y reiniciar la API. No
+copiarlo a EXPO_PUBLIC_* ni a Android. Sin configurarlo, `/api/v1/sync` responde
+503 SYNC_NOT_CONFIGURED; el resto de la API mantiene su comportamiento.
+
+Usar una base terminada en `_schema_test` para pruebas de integracion. Nunca
+apuntar esas suites ni sus fixtures a Railway. La API aislada para el APK local
+0.3.0 usa puerto 3103; el puerto habitual 3000 y su `.env` no se modifican.
+
+Las historias moviles permanecen In Progress hasta completar la aceptacion en
+Android: modo avion, reinicio, seleccion, nuevas versiones, salida con pendientes,
+TalkBack y texto ampliado. La compilacion y las pruebas automatizadas no sustituyen
+ese recorrido. El backend de sync requiere despliegue antes de usarlo en Railway.

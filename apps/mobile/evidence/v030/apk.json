@@ -1,0 +1,12 @@
+{
+  "artifact": "apps/mobile/artifacts/wellq-0.3.0-production.apk",
+  "sha256": "1f45fc8c8bd3b564b41077ce758955fe25e2fda1b65d95e4d47266fc9e84ae6e",
+  "sizeBytes": 95217732,
+  "version": "0.3.0",
+  "versionCode": 3,
+  "apiUrl": "https://capstone005v-production.up.railway.app/api/v1",
+  "demoMode": false,
+  "minSdk": 29,
+  "cleartextTraffic": false,
+  "signing": "development"
+}

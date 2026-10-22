@@ -32,7 +32,7 @@ npm.cmd run apk:preview --prefix apps/mobile
 5. Sin red solo se muestra la última bienvenida informativa. No se consideran actuales sus permisos; se revalidan al reconectar. Cerrar sesión borra el acceso local; la revocación remota requiere conexión.
 6. Para recuperar acceso: solicitar código, escribir los seis dígitos y definir una nueva contraseña de 12–128 caracteres. El código vence en diez minutos, tiene cinco intentos y se reenvía después de 60 segundos. La recuperación cierra las sesiones de la cuenta en todas sus clínicas.
 
-Desde 0.2.0 se consultan exámenes y documentos reales. La carga móvil, SQLite y sincronización se desarrollan en etapas posteriores.
+Desde 0.2.0 se consultan examenes y documentos reales. Android 0.3.0 agrega cargas, nuevas versiones, SQLite, sincronizacion y copias offline seleccionadas; ver la seccion 0.3.0 y sus limites de aceptacion.
 
 ## API y datos sintéticos
 
@@ -139,3 +139,38 @@ npm.cmd run apk --prefix apps/mobile
 Salida: `apps/mobile/artifacts/wellq-0.2.0-production.apk`, versionCode 2 y firma de desarrollo. El APK local usa `apk:preview` con WELLQ_DEMO_MODE=false y EXPO_PUBLIC_API_URL configurada antes de compilar (10.0.2.2:3102 para la API aislada en el emulador; una IP LAN para teléfono). Nunca incluir credenciales PostgreSQL en la app. El perfil de producción exige HTTPS y desactiva demo.
 
 Evidencia de archivos y recorridos: [v020](evidence/v020/README.md). Las cuatro versiones ficticias de Railway se conservan para la cuenta patient2@example.com. El script de carga requiere WELLQ_SYNTHETIC_TESTS=1, SMOKE_API_URL y SMOKE_PASSWORD, y crea cuatro versiones por ejecución: no repetirlo solo para visualizar los documentos ya existentes.
+
+
+## Android 0.3.0: cargas, sincronizacion y copias sin conexion
+
+Incluye SQLite v3, cache de metadatos, carga de examenes y nuevas versiones,
+cola durable y copias documentales offline elegidas por version. Desde Mis examenes
+se accede a Subir examen, Cargas pendientes y Documentos sin conexion. El detalle
+permite Subir nueva version; el servidor asigna su numero.
+
+La primera sincronizacion requiere conexion, ficha y configuracion de `/sync` en
+la API. Las cargas offline requieren una sesion restaurable vigente y el ultimo
+permiso READ_WRITE conocido. Se registran como pendientes, nunca como subidas.
+Los reintentos automaticos se realizan con la app en primer plano; cerrar Android
+no pierde la cola y volver a abrir recupera operaciones interrumpidas. Cada envio
+conserva UUIDs, contenido y hash. Los errores definitivos requieren descarte o
+correccion mediante una operacion nueva; los transitorios agotados admiten
+reintento manual con la misma identidad.
+
+Disponible sin conexion descarga y verifica una version concreta en almacenamiento
+privado, separado de los pendientes y temporales del visor. Las versiones anteriores
+siguen disponibles si se guardaron y el servidor mantiene su acceso. Sin red no se
+presume conocer versiones o revocaciones nuevas. Descargar a una carpeta sigue
+siendo una accion online y las copias exportadas quedan bajo control del usuario.
+
+Cambiar de clinica exige resolver los pendientes del contexto actual. Cerrar sesion
+exige resolver los pendientes de la cuenta y retira sus copias privadas y cache.
+La invalidacion forzada conserva pendientes aislados hasta autenticar nuevamente.
+No existe procesamiento en segundo plano ni descarga automatica de todos los archivos.
+
+La compilacion nativa debe regenerarse para incorporar expo-sqlite, expo-network y
+expo-document-picker. Version 0.3.0, versionCode 3. `prepare:viewer` tambien empaqueta
+el SQL compartido; no editar `src/clinical/schema.ts` a mano. La vista web conserva
+consulta online; las pantallas de persistencia requieren Android.
+
+Ver [evidencia y validaciones pendientes](evidence/v030/README.md).

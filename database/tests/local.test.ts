@@ -1,3 +1,4 @@
+import {migrateClinicalDatabase} from '../sqlite/migrate-v3';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -78,4 +79,24 @@ test('Tombstone removes downloads and blocks pending upload, preserving original
  assert.equal(raw.prepare('SELECT count(*) n FROM local_exam_versions').get().n,0);assert.equal(raw.prepare('SELECT count(*) n FROM local_file_cleanup').get().n,1);
  const pending=raw.prepare('SELECT * FROM sync_queue').get();assert.equal(pending.payload,payload);assert.equal(pending.status,'FAILED');assert.equal(pending.is_retryable,0);
  assert.equal(await claimUpload(db,uid(1),uid(2),now),null);raw.close();
+});
+
+test('v3 upgrades v2 preserving pending uploads and supports repeat startup',async()=>{
+ const {db,raw}=adapter();await migrateLocalDatabase(db,schema);context(raw);queue(raw);
+ await migrateClinicalDatabase(db,schema);await migrateClinicalDatabase(db,schema);
+ assert.equal(raw.prepare('PRAGMA user_version').get().user_version,3);
+ assert.equal(raw.prepare('SELECT status,file_uri FROM sync_queue').get().status,'PENDING');
+ assert.equal(raw.prepare('SELECT file_uri FROM sync_queue').get().file_uri,'file:///private/pending.pdf');raw.close();
+});
+test('v3 failure rolls back added columns and preserves v2 pending data',async()=>{
+ const {db,raw}=adapter();await migrateLocalDatabase(db,schema);context(raw);queue(raw);raw.exec('CREATE VIEW local_exam_types AS SELECT 1');
+ await assert.rejects(migrateClinicalDatabase(db,schema));
+ assert.equal(raw.prepare('PRAGMA user_version').get().user_version,2);
+ assert.equal(raw.prepare('SELECT count(*) n FROM sync_queue').get().n,1);
+ assert.equal(raw.prepare('PRAGMA table_info(local_exams)').all().some((r:any)=>r.name==='detail_json'),false);raw.close();
+});
+
+test('v3 restores foreign keys after reopen and rejects missing schema tables',async()=>{
+ const {db,raw}=adapter();await migrateClinicalDatabase(db,schema);raw.exec('PRAGMA foreign_keys=OFF');await migrateClinicalDatabase(db,schema);assert.equal(raw.prepare('PRAGMA foreign_keys').get().foreign_keys,1);
+ raw.exec('DROP TABLE sync_metadata');await assert.rejects(migrateClinicalDatabase(db,schema));raw.close();
 });

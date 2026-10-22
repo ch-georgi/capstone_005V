@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-22",
+  "mobile": {
+    "fullSuitePassed": 60,
+    "additionalRegressionPassed": 1,
+    "totalCases": 61,
+    "configurationTests": 2,
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "androidExport": "PASS",
+    "webExport": "PASS",
+    "apk": "PASS"
+  },
+  "backend": {
+    "unitTestsPassed": 171,
+    "postgresIntegrationTestsPassed": 74,
+    "typecheck": "PASS",
+    "build": "PASS"
+  },
+  "sqlite": {
+    "pythonTestsPassed": 21,
+    "typescriptTestsPassed": 10
+  },
+  "railway": {
+    "deployment": "BLOCKED_BY_PLATFORM",
+    "attempts": 2,
+    "message": "Deploys have been paused due to an upstream issue",
+    "syncUnauthenticatedHttpStatus": 404,
+    "secretConfigured": true
+  },
+  "acceptancePending": [
+    "interactive Android selector and airplane-mode/restart walkthrough",
+    "physical Android 10+, TalkBack and enlarged text",
+    "Railway deployment and remote sync validation"
+  ]
+}
