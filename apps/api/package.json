@@ -10,6 +10,7 @@
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:fixtures": "ts-node scripts/upload-fixtures.ts",
+    "db:seed-demo": "ts-node scripts/seed-demo.ts",
     "smoke:exam-files": "ts-node scripts/smoke-exam-files.ts",
     "typecheck": "tsc --noEmit",
     "test:postgres": "ts-node scripts/test-postgres.ts",

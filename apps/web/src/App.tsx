@@ -8,6 +8,7 @@ import { CreateUser } from "./pages/CreateUser";
 import { Patients } from "./pages/Patients";
 import { PatientForm } from "./pages/PatientForm";
 import { PatientDetail } from "./pages/PatientDetail";
+import { Audit } from "./pages/Audit";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/pacientes/nuevo" element={<ProtectedRoute><PatientForm /></ProtectedRoute>} />
         <Route path="/pacientes/:patientId" element={<ProtectedRoute><PatientDetail /></ProtectedRoute>} />
         <Route path="/pacientes/:patientId/editar" element={<ProtectedRoute><PatientForm /></ProtectedRoute>} />
+        <Route path="/auditoria" element={<ProtectedRoute><Audit /></ProtectedRoute>} />
       </Routes>
     </>
   );

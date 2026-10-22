@@ -163,3 +163,16 @@ export const deleteExam = (token: string, examId: string) => apiRequest<void>(`/
 export type UploadResult = { examId: string; versionId: string; versionNumber: number; replayed: boolean };
 export const fileUrlPath = (examId: string, versionId: string, mode: "download" | "view") =>
   `/exams/${examId}/versions/${versionId}/${mode}`;
+
+// ---------- Auditoría (solo CLINIC_ADMIN) ----------
+export type AuditAction = "CREATE" | "VIEW" | "DOWNLOAD" | "NEW_VERSION" | "UPDATE" | "DELETE" | "PURGE";
+export type AuditEntry = {
+  id: string; action: AuditAction; createdAt: string; ipAddress: string | null; userAgent: string | null;
+  fileMetadata: { original_filename?: string; version_number?: number } | null;
+  metadata: Record<string, unknown> | null;
+  actor: { id: string; email: string | null };
+  patient: { id: string; firstName: string; lastName: string; medicalRecordNumber: string | null } | null;
+  exam: { id: string; title: string } | null;
+};
+export const listAudit = (token: string, p: { action?: AuditAction; patientId?: string; limit?: number; offset?: number }) =>
+  apiRequest<Page<AuditEntry>>(`/audit${qs(p)}`, { token });
