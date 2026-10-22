@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
 import "./AppHeader.css";
 
 export function AppHeader() {
@@ -12,6 +13,8 @@ export function AppHeader() {
           <span className="brand-mark" aria-hidden="true">Q</span>
           <span className="brand-name">WellQ</span>
         </Link>
+        <div className="app-header-actions">
+        <ThemeToggle />
         {isAuthenticated ? (
           <nav className="app-nav">
             <Link to="/pacientes">Pacientes</Link>
@@ -21,6 +24,7 @@ export function AppHeader() {
             </button>
           </nav>
         ) : null}
+        </div>
       </div>
     </header>
   );

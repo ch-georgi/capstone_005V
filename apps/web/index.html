@@ -7,8 +7,13 @@
     <meta name="description" content="WellQ — gestión de exámenes médicos para clínicas." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;650;750&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <title>WellQ</title>
+    <script>
+      // Aplica el tema guardado antes de pintar (evita parpadeo). Claro por defecto.
+      try { document.documentElement.dataset.theme = localStorage.getItem("wellq-theme") === "dark" ? "dark" : "light"; }
+      catch (e) { document.documentElement.dataset.theme = "light"; }
+    </script>
   </head>
   <body>
     <div id="root"></div>

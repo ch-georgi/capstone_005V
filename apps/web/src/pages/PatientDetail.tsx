@@ -154,7 +154,7 @@ export function PatientDetail() {
                     <h3>{exam.title}</h3>
                     <p className="muted">{exam.examType.name}{exam.professionalName ? ` · ${exam.professionalName}` : ""}</p>
                   </div>
-                  <span className="badge">v{latest?.versionNumber ?? 1}</span>
+                  <span className="version-badge">v{latest?.versionNumber ?? 1}</span>
                 </div>
                 {exam.notes ? <p>{exam.notes}</p> : null}
                 {latest ? (

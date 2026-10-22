@@ -1,0 +1,27 @@
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--btn-secondary-border);
+  background: var(--btn-secondary-bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--primary);
+}
+
+@media (max-width: 520px) {
+  .theme-toggle-label {
+    display: none;
+  }
+  .theme-toggle {
+    padding: 8px 10px;
+  }
+}

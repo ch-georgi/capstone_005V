@@ -4,6 +4,8 @@
   border-radius: var(--radius-l);
   box-shadow: var(--shadow);
   padding: 32px;
+  /* react-bootstrap también define .card (con texto oscuro): se fija el color del tema. */
+  color: var(--text);
 }
 
 @media (max-width: 480px) {
