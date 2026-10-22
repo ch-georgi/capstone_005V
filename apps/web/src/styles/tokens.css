@@ -1,67 +1,70 @@
-/* Tokens de diseño WellQ — ver paleta de referencia aprobada.
-   Modo claro por defecto; modo oscuro sigue el tema del sistema o [data-theme]. */
+/* Tokens de diseño WellQ — misma paleta y estética que la app Android.
+   Claro por defecto. El modo oscuro se activa con [data-theme="dark"] (selector en el encabezado,
+   guardado en el navegador). Los nombres --teal/--teal-ink se conservan por compatibilidad:
+   hoy son el verde de marca (--primary). */
 :root {
-  --bg: #f7f7f8;
+  color-scheme: light;
+
+  --bg: #eef7f1;
+  --page-bg: linear-gradient(180deg, #f6fcf8 0%, #e3f3ea 100%);
   --surface: #ffffff;
-  --surface-sunken: #f0f0f2;
-  --border: #e3e3e7;
-  --text: #18181b;
-  --text-muted: #6b6e76;
+  --surface-sunken: #f1f8f4;
+  --field-bg: #ffffff;
+  --border: #c9e0d3;
+  --text: #0f2a1d;
+  --text-muted: #4d6558;
 
-  --teal: #0ea99d;
-  --teal-ink: #ffffff;
-  --green: #1f9d5c;
-  --orange: #d9700f;
-  --red: #d93a58;
-  --blue: #2563eb;
-  --purple: #8530d8;
+  --primary: #087f52;
+  --primary-ink: #ffffff;
+  --teal: var(--primary);
+  --teal-ink: var(--primary-ink);
 
-  --shadow: 0 1px 2px rgba(20, 20, 24, 0.04), 0 8px 24px -12px rgba(20, 20, 24, 0.12);
-  --radius-s: 8px;
-  --radius-m: 12px;
-  --radius-l: 18px;
+  --btn-secondary-bg: #ffffff;
+  --btn-secondary-border: #b9d6c6;
+  --danger-ink: #ffffff;
 
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --green: #167a47;
+  --orange: #b85c0a;
+  --red: #c8304c;
+  --blue: #2b8fd1;
+  --purple: #7a2bc9;
+
+  --shadow: 0 1px 2px rgba(15, 42, 29, 0.05), 0 10px 28px -14px rgba(15, 42, 29, 0.18);
+
+  --radius-s: 14px;
+  --radius-m: 18px;
+  --radius-l: 24px;
+  --radius-pill: 999px;
+
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0b0c0f;
-    --surface: #17181c;
-    --surface-sunken: #0f1013;
-    --border: #27282e;
-    --text: #f2f3f5;
-    --text-muted: #94969c;
-
-    --teal: #22d3c7;
-    --teal-ink: #06211f;
-    --green: #3fc878;
-    --orange: #f7923c;
-    --red: #f2607a;
-    --blue: #5b8ff8;
-    --purple: #a368f0;
-
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
-  }
-}
-
 :root[data-theme="dark"] {
-  --bg: #0b0c0f;
-  --surface: #17181c;
-  --surface-sunken: #0f1013;
-  --border: #27282e;
-  --text: #f2f3f5;
-  --text-muted: #94969c;
+  color-scheme: dark;
 
-  --teal: #22d3c7;
-  --teal-ink: #06211f;
-  --green: #3fc878;
+  --bg: #05080a;
+  --page-bg: radial-gradient(ellipse 120% 55% at 50% -8%, #0b3d2a 0%, #05080a 62%);
+  --surface: #0b1310;
+  --surface-sunken: #0f1914;
+  --field-bg: #101b16;
+  --border: #1d2d26;
+  --text: #f2f6f4;
+  --text-muted: #a3b4ab;
+
+  --primary: #22f3a7;
+  --primary-ink: #04261a;
+
+  --btn-secondary-bg: #121a24;
+  --btn-secondary-border: #263241;
+  --danger-ink: #2a0a10;
+
+  --green: #3fd28a;
   --orange: #f7923c;
   --red: #f2607a;
-  --blue: #5b8ff8;
+  --blue: #3ec1ee;
   --purple: #a368f0;
 
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px -18px rgba(0, 0, 0, 0.7);
 }

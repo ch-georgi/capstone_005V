@@ -1,7 +1,7 @@
 .brand-panel {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(155deg, #0a5f58 0%, #0ea99d 45%, #1f6fb0 100%);
+  background: linear-gradient(155deg, #075c3d 0%, #10a06d 48%, #2a9fd0 100%);
   color: #f3fbfa;
   display: flex;
   align-items: center;
@@ -13,11 +13,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .brand-panel {
-    background: linear-gradient(155deg, #042c28 0%, #0f6e65 45%, #16426b 100%);
+    background: linear-gradient(155deg, #03180f 0%, #0a5a3e 48%, #0d3a52 100%);
   }
 }
 :root[data-theme="dark"] .brand-panel {
-  background: linear-gradient(155deg, #042c28 0%, #0f6e65 45%, #16426b 100%);
+  background: linear-gradient(155deg, #03180f 0%, #0a5a3e 48%, #0d3a52 100%);
 }
 
 .brand-panel-blob {
@@ -31,7 +31,7 @@
 .blob-1 {
   width: 360px;
   height: 360px;
-  background: #5bf0d9;
+  background: #4bf0b0;
   top: -120px;
   right: -100px;
 }
@@ -39,7 +39,7 @@
 .blob-2 {
   width: 320px;
   height: 320px;
-  background: #3a7bd5;
+  background: #3ec1ee;
   bottom: -140px;
   left: -80px;
 }

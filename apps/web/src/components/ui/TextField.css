@@ -16,7 +16,7 @@
   padding: 11px 13px;
   border-radius: var(--radius-s);
   border: 1px solid var(--border);
-  background: var(--surface-sunken);
+  background: var(--field-bg);
   color: var(--text);
   font-size: 14.5px;
   font-family: inherit;
