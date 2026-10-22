@@ -28,7 +28,7 @@ const routes = {
   login: Login,
   clinics: Clinics,
   recovery: Recovery,
-  "document/[examId]/[versionId]": () => null,
+  upload: () => null, pending: () => null, offline: () => null, "document/[examId]/[versionId]": () => null,
 };
 it("redirects a protected welcome deep link to login without a session", async () => {
   (useAuth as jest.Mock).mockReturnValue({

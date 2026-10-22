@@ -1,6 +1,10 @@
 # Contrato de datos y sincronización de WellQ
 
-Este documento es el contrato vigente de persistencia. La API NestJS ya implementa login, autorización por rol/contexto y creación controlada de usuarios; ver [la guía de API](../../apps/api/README.md). El cliente Android de acceso y bienvenida, sesiones renovables y recuperación por correo están implementados; ver [contrato de autenticación móvil](../../apps/api/MOBILE_AUTH.md). Los endpoints clínicos, de cargas/sync y trabajadores descritos a continuación siguen pendientes. Los esquemas, migraciones, triggers, helpers SQL, adaptadores SQLite y utilidades de firma/hash sí están implementados.
+Este documento define el contrato vigente de persistencia. La API implementa
+login, autorizacion, pacientes, examenes, cargas idempotentes y sincronizacion HTTP.
+Android 0.3.0 incorpora SQLite, cache, cola y copias offline verificadas por version.
+Los trabajadores remotos de purga S3 permanecen pendientes y fuera de esta entrega.
+Ver las guias de API y movil para configuracion y las evidencias para aceptacion.
 
 ## Identidad y autorización
 
@@ -46,13 +50,13 @@ El trabajador S3 pendiente elimina objetos fuera de esa transacción. Un 404 con
 
 ## Cargas y reintentos
 
-Contrato pendiente: POST `/api/v1/exams/uploads`, multipart, con un campo JSON `request` de tipo UploadEnvelope (types.ts) y un campo `file`. Operaciones: CREATE_EXAM_WITH_VERSION y UPLOAD_VERSION. No hay dos operaciones dependientes para la primera carga.
+Contrato implementado: POST `/api/v1/exams/uploads`, multipart, con un campo JSON `request` de tipo UploadEnvelope (types.ts) y un campo `file`. Operaciones: CREATE_EXAM_WITH_VERSION y UPLOAD_VERSION. No hay dos operaciones dependientes para la primera carga.
 
 Los UUID de operación, examen y versión se generan antes de encolar y no cambian. CREATE requiere título, fecha y tipo; UPLOAD_VERSION requiere examen existente. El archivo debe copiarse primero a un directorio privado persistente de pendientes, separado del directorio de descargas. Las tablas de caché solo reciben entidades confirmadas por el servidor.
 
 La huella se calcula sobre UploadEnvelope normalizado con claves JSON ordenadas recursivamente (security.ts), UTF-8 y SHA-256. Campos opcionales ausentes se omiten, no se representan como undefined. El backend recalcula tamaño/MIME/hash del archivo y valida el DTO antes de calcular su propia huella. El request_hash local no es una prueba de autenticidad.
 
-Secuencia del backend pendiente:
+Secuencia de cargas del backend:
 
 1. Autenticar actor y validar pertenencia/actividad/escritura; validar DTO y archivo.
 2. Para usuario+clínica+operationId existente: igual huella devuelve el resultado guardado con HTTP 200 y `replayed:true`; distinta huella devuelve 409 IDEMPOTENCY_CONFLICT. Revalidar autorización antes de devolver resultados. Los resultados se conservan durante el MVP.
@@ -69,7 +73,7 @@ Al completar se agenda limpieza del archivo pendiente. El worker local procesa l
 
 ## Sincronización incremental
 
-Contrato pendiente: GET `/api/v1/sync?clinicId=UUID&cursor=TOKEN&limit=N`. JWT obligatorio. Limit entero 1..500, default 100. Sin cursor devuelve SNAPSHOT completo y no paginado para el volumen del MVP, obtenido en una transacción REPEATABLE READ junto con la revisión confirmada. La respuesta usa SyncResponse de types.ts; SNAPSHOT incluye fichas, exámenes y versiones permitidos ordenados padre antes de hijo.
+Contrato implementado: GET `/api/v1/sync?clinicId=UUID&cursor=TOKEN&limit=N`. JWT obligatorio. Limit entero 1..500, default 100. Sin cursor devuelve SNAPSHOT completo y no paginado para el volumen del MVP, obtenido en una transacción REPEATABLE READ junto con la revisión confirmada. La respuesta usa SyncResponse de types.ts; SNAPSHOT incluye fichas, exámenes y versiones permitidos ordenados padre antes de hijo.
 
 SyncChange tiene revisión monotónica por clínica, entidad, UUID, paciente, UPSERT/DELETE y payload. La base incrementa el contador de la clínica bajo un lock que dura hasta commit; no utiliza una secuencia ni un reloj del móvil. Versiones nuevas emiten primero su examen actualizado y luego la versión. Los eventos de examen incluyen código/nombre de tipo; editar el catálogo vuelve a emitir los exámenes afectados, bajo locks de clínica ordenados. No se crean exámenes nuevos con tipos inactivos. Los tombstones sobreviven a purgas; no se podan en este MVP.
 
@@ -125,3 +129,22 @@ test-postgres.ts comprueba constraints diferidos, FKs, acceso histórico SQL, au
 La migración inicial fue regenerada porque el entorno fue declarado descartable. No ejecutar reset sobre despliegues con datos; cualquier despliegue anterior requiere una migración de transición distinta.
 
 Seed: upserts con UUIDs estables, cuentas activadas/pendientes, roles/activación diferentes por tenant y fichas históricas. documento-demo.pdf es un archivo sintético real cuyo checksum calcula el seed. db:seed crea metadatos; db:fixtures carga esos bytes al bucket existente mediante S3 SigV4, usando S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY y S3_REGION opcional. No hay descargas funcionales hasta cargar esos fixtures. El seed nunca usa borrado físico de pacientes ni modifica versiones confirmadas.
+
+
+## Integracion Android v3
+
+`migrateClinicalDatabase` en sqlite/migrate-v3.ts encadena la migracion vigente v2
+con el catalogo de tipos y los campos de presentacion del detalle. La migracion
+retira cursores antiguos para completar esos campos mediante snapshot, conserva
+cola/cuarentena y verifica claves foraneas al reabrir. Android empaqueta el SQL v2
+mediante build-clinical-schema.mjs y aplica ambos pasos al abrir una unica conexion.
+
+Las copias verificadas siguen en local_exam_versions; no hay BLOB documental.
+El cliente aplica datos/cursor de cada pagina en una transaccion. Las copias offline
+se preservan en snapshots cuando la version permanece accesible e inmutable.
+RETRY_EXHAUSTED identifica fallos transitorios con presupuesto agotado y permite
+reinicio manual del presupuesto conservando el sobre y sus UUIDs.
+
+Las cargas HTTP idempotentes y GET /sync ya estan implementados. Las referencias
+historicas a APIs inexistentes en secciones anteriores no describen el estado
+actual; el trabajador remoto de purga S3 permanece fuera de esta entrega movil.

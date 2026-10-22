@@ -37,6 +37,7 @@ export interface Storage {
 }
 export interface BinaryFile { bytes: Uint8Array; mimeType: string }
 export interface Api {
+  upload?<T>(request: unknown, uri: string, filename: string, mimeType: string, token: string): Promise<T>;
   file?(path: string, token: string): Promise<BinaryFile>;
   request<T>(
     path: string,

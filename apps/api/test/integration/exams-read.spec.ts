@@ -40,6 +40,7 @@ describe('Exam read API against disposable PostgreSQL', () => {
   beforeAll(async () => {
     const url = process.env.TEST_DATABASE_URL;
     if (!url || !new URL(url).pathname.endsWith('_schema_test') || process.env.DATABASE_URL !== url) throw new Error('Disposable database required');
+    process.env.SYNC_CURSOR_SECRET='integration-sync-secret-at-least-32-bytes';
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = module.createNestApplication(); configureApplication(app); await app.init();
     db = app.get(PrismaService);
@@ -115,4 +116,45 @@ describe('Exam read API against disposable PostgreSQL', () => {
     await get(admin, `/exams/${deleted}`).expect(404);
     await get(admin, `/exams/${randomUUID()}`).expect(404);
   });
+  it('sync snapshots include only authorized metadata, with complete version DTOs',async()=>{
+    const token=await login(userP1,clinicA);
+    const response=await get(token,`/sync?clinicId=${clinicA}`).expect(200);
+    expect(response.body.mode).toBe('SNAPSHOT');
+    expect(response.body.changes.every((c:any)=>c.patientId===patient1)).toBe(true);
+    expect(response.body.changes.some((c:any)=>c.entityId===exam3)).toBe(false);
+    expect(response.body.changes.filter((c:any)=>c.entity==='EXAM').every((c:any)=>Array.isArray(c.payload.versions))).toBe(true);
+    expect(JSON.stringify(response.body)).not.toContain('storageKey');
+    await get(token,`/sync?clinicId=${clinicB}`).expect(403);
+    await get(token,`/sync?clinicId=${clinicA}&cursor=bad`).expect(400);
+    await get(token,`/sync?clinicId=${clinicA}&limit=501`).expect(400);
+  });
+  it('sync scans invisible events and reaches own changes without exposing other patients',async()=>{
+    const token=await login(userP1,clinicA);
+    let cursor=(await get(token,`/sync?clinicId=${clinicA}`).expect(200)).body.nextCursor;
+    const own=randomUUID(),other=randomUUID();
+    await makeExam(other,patient2,typeA,'Hidden sync','2026-10-20',1);
+    await makeExam(own,patient1,typeA,'Visible sync','2026-10-20',1);
+    const changes:any[]=[];let more=true;
+    for(let n=0;more&&n<30;n++){
+      const page=(await get(token,`/sync?clinicId=${clinicA}&cursor=${encodeURIComponent(cursor)}&limit=1`).expect(200)).body;
+      changes.push(...page.changes);cursor=page.nextCursor;more=page.hasMore;
+    }
+    expect(more).toBe(false);expect(changes.some(c=>c.entityId===own)).toBe(true);
+    expect(changes.some(c=>c.patientId===patient2)).toBe(false);
+    await db.exam.update({where:{id:own},data:{deletedAt:new Date(),deletedBy:adminA}});
+    const page=(await get(token,`/sync?clinicId=${clinicA}&cursor=${encodeURIComponent(cursor)}`).expect(200)).body;
+    expect(page.changes.some((c:any)=>c.entityId===own&&c.action==='DELETE')).toBe(true);
+  });
+  it('sync requires a snapshot after permissions change and preserves historical read access',async()=>{
+    const token=await login(userP1,clinicA);
+    const cursor=(await get(token,`/sync?clinicId=${clinicA}`).expect(200)).body.nextCursor;
+    const membership={userId_clinicId:{userId:userP1,clinicId:clinicA}};
+    await db.userClinic.update({where:membership,data:{isActive:false}});
+    try{
+      const reset=await get(token,`/sync?clinicId=${clinicA}&cursor=${encodeURIComponent(cursor)}`).expect(409);
+      expect(reset.body.code).toBe('SYNC_RESET_REQUIRED');
+      expect((await get(token,`/sync?clinicId=${clinicA}`).expect(200)).body.access).toBe('READ_ONLY');
+    }finally{await db.userClinic.update({where:membership,data:{isActive:true}});}
+  });
+
 });

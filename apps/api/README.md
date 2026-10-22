@@ -295,3 +295,22 @@ Para separar desarrollo local y el APK conectado a Railway, ver [guía de despli
 ### Perfil móvil para consulta documental
 
 El perfil móvil incorpora `patientId` de la clínica autenticada (o null para ficha pendiente). `PATCH /api/v1/auth/me` permite al paciente editar únicamente el nombre de presentación de esa membresía, con 1–100 caracteres recortados. No modifica correo ni ficha clínica. Ver [contratos y reglas](MOBILE_AUTH.md#nombre-y-ficha-del-paciente-móvil-020).
+
+
+## Sincronizacion movil (Android 0.3.0)
+
+`GET /api/v1/sync?clinicId=UUID&cursor=TOKEN&limit=100` requiere JWT de clinica.
+Sin cursor entrega SNAPSHOT; los siguientes ciclos reciben DELTA paginado (limit
+1..500). `changes` incluye PATIENT, EXAM y EXAM_VERSION, payloads autorizados
+actualmente y DELETE sin contenido para recursos retirados. El detalle del examen
+incluye historial y referencias de autores; nunca claves de almacenamiento.
+
+Configurar SYNC_CURSOR_SECRET independiente, de al menos 32 bytes. Si falta,
+responde 503 SYNC_NOT_CONFIGURED. Las revisiones son cadenas decimales. El cursor
+firmado queda ligado a usuario, clinica y revision de permisos: 409
+SYNC_RESET_REQUIRED exige snapshot nuevo; 400 INVALID_CURSOR indica firma/formato
+invalido. No cambiar JWT ni permisos de los endpoints de pacientes para habilitarlo.
+
+Pruebas en PostgreSQL descartable: test/integration/exams-read.spec.ts incluye
+snapshot propio, paginacion sobre eventos invisibles, tombstones y cambio de
+permisos. Ejecutar con TEST_DATABASE_URL terminada en _schema_test.

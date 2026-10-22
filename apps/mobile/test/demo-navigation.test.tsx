@@ -18,7 +18,7 @@ it("runs the real protected login/welcome/logout flow without network or device 
   const get = jest.spyOn(SecureStore, "getItemAsync");
   const set = jest.spyOn(SecureStore, "setItemAsync");
   const remove = jest.spyOn(SecureStore, "deleteItemAsync");
-  const navigation = renderRouter({ _layout: Layout, "(tabs)/_layout": TabLayout, "(tabs)/index": Welcome, "(tabs)/account": Account, "(tabs)/exams": () => null, login: Login, clinics: Clinics, recovery: Recovery, "document/[examId]/[versionId]": () => null }, { initialUrl: "/" });
+  const navigation = renderRouter({ _layout: Layout, "(tabs)/_layout": TabLayout, "(tabs)/index": Welcome, "(tabs)/account": Account, "(tabs)/exams": () => null, login: Login, clinics: Clinics, recovery: Recovery, upload: () => null, pending: () => null, offline: () => null, "document/[examId]/[versionId]": () => null }, { initialUrl: "/" });
   await navigation;
   expect(navigation.getPathname()).toBe("/login");
   expect(screen.getByText("Modo demostración · Datos ficticios")).toBeTruthy();

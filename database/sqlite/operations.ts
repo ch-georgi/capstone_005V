@@ -6,7 +6,7 @@ export async function claimUpload(db: SQLiteAdapter, owner: string, clinic: stri
   const timestamp=now.toISOString(), until=new Date(now.getTime()+300000).toISOString();
   await db.execAsync('BEGIN IMMEDIATE');
   try {
-    await db.runAsync("UPDATE sync_queue SET status='PENDING',processing_until=NULL,updated_at=? WHERE owner_user_id=? AND clinic_id=? AND status='PROCESSING' AND processing_until<=?",timestamp,owner,clinic,timestamp);
+    await db.runAsync("UPDATE sync_queue SET status=CASE WHEN retry_count>=8 THEN 'FAILED' ELSE 'PENDING' END,pause_reason=CASE WHEN retry_count>=8 THEN 'RETRY_EXHAUSTED' ELSE pause_reason END,processing_until=NULL,updated_at=? WHERE owner_user_id=? AND clinic_id=? AND status='PROCESSING' AND processing_until<=?",timestamp,owner,clinic,timestamp);
     const rows=await db.getAllAsync<{id:string}>("SELECT q.id FROM sync_queue q JOIN local_contexts c USING(owner_user_id,clinic_id) WHERE q.owner_user_id=? AND q.clinic_id=? AND c.access_state='READ_WRITE' AND q.status IN ('PENDING','FAILED') AND q.is_retryable=1 AND q.retry_count<8 AND q.pause_reason IS NULL AND (q.next_attempt_at IS NULL OR q.next_attempt_at<=?) ORDER BY q.created_at,q.id LIMIT 1",owner,clinic,timestamp);
     if (!rows.length) { await db.execAsync('COMMIT'); return null; }
     await db.runAsync("UPDATE sync_queue SET status='PROCESSING',retry_count=retry_count+1,processing_until=?,updated_at=? WHERE owner_user_id=? AND clinic_id=? AND id=?",until,timestamp,owner,clinic,rows[0].id);
@@ -36,7 +36,7 @@ export async function settleUpload(db:SQLiteAdapter,owner:string,clinic:string,i
     const failures=rows[0].retry_count-(paused?1:0); // Attempts, including interrupted leases; auth/permission consumes none.
     const retryable=outcome.kind!=='PERMANENT' && failures<8;
     await db.runAsync("UPDATE sync_queue SET status=?,processing_until=NULL,retry_count=?,is_retryable=?,pause_reason=?,last_error=?,next_attempt_at=?,updated_at=? WHERE owner_user_id=? AND clinic_id=? AND id=?",
-      outcome.kind==='SUCCESS'?'COMPLETED':paused?'PENDING':'FAILED',failures,retryable?1:0,paused?outcome.kind:null,
+      outcome.kind==='SUCCESS'?'COMPLETED':paused?'PENDING':'FAILED',failures,retryable?1:0,paused?outcome.kind:outcome.kind==='TRANSIENT'&&!retryable?'RETRY_EXHAUSTED':null,
       outcome.kind==='SUCCESS'?null:outcome.error,outcome.kind==='TRANSIENT'&&retryable?new Date(now.getTime()+retryDelayMs(failures)).toISOString():null,now.toISOString(),owner,clinic,id);
     await db.execAsync('COMMIT');
   } catch(error) {await db.execAsync('ROLLBACK');throw error;}
