@@ -22,15 +22,19 @@
     "typescriptTestsPassed": 10
   },
   "railway": {
-    "deployment": "BLOCKED_BY_PLATFORM",
-    "attempts": 2,
-    "message": "Deploys have been paused due to an upstream issue",
-    "syncUnauthenticatedHttpStatus": 404,
-    "secretConfigured": true
+    "deployment": "SUCCESS",
+    "deploymentId": "7a579147-b9f7-478d-a71b-77e863d54b3e",
+    "commit": "656b49c4c9b498574b7f6b5849b129f2855be870",
+    "branch": "main",
+    "syncUnauthenticatedHttpStatus": 401,
+    "authenticatedSnapshotHttpStatus": 200,
+    "secretConfigured": true,
+    "remoteSyncValidation": "PASS",
+    "evidence": "remote-sync.json",
+    "previousCliAttemptsBlockedByPlatform": 2
   },
   "acceptancePending": [
     "interactive Android selector and airplane-mode/restart walkthrough",
-    "physical Android 10+, TalkBack and enlarged text",
-    "Railway deployment and remote sync validation"
+    "physical Android 10+, TalkBack and enlarged text"
   ]
 }

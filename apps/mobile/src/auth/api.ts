@@ -1,3 +1,4 @@
+import { File } from "expo-file-system";
 import Constants from "expo-constants";
 import { Api, ApiError } from "./types";
 import { demoMode } from "./mode";
@@ -12,7 +13,10 @@ export const api: Api = {
     if (demoMode) throw new ApiError(400,"DEMO_ONLY","Las cargas requieren conexión real.");
     const form = new FormData();
     form.append("request",JSON.stringify(request));
-    form.append("file",{uri,name:filename,type:mimeType} as unknown as Blob);
+    // Expo 57 serializes bytes-capable file parts; React Native URI objects are rejected.
+    // Pending files use UUID paths, so preserve the verified MIME and original name explicitly.
+    const file = new File(uri);
+    form.append("file", { name: filename, type: mimeType, bytes: () => file.bytes() } as unknown as Blob);
     const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),120000);
     try {
       const response=await fetch(`${base}/exams/uploads`,{method:"POST",headers:{Authorization:`Bearer ${token}`,Accept:"application/json"},body:form,signal:controller.signal});

@@ -1,3 +1,4 @@
+import {DateField} from "../../../src/components/DateField";
 import {SyncNotice} from "../../../src/clinical/SyncNotice";
 import React,{useState} from "react";
 
@@ -11,7 +12,7 @@ import {useResource} from "../../../src/exams/use-resource";
 
 import {ExamPage,ExamType,dateLabel,validDate} from "../../../src/exams/types";
 
-import {Screen,Heading,Copy,Card,Badge,Button,Field,ErrorMessage} from "../../../src/ui";
+import {Screen,Heading,Copy,Card,Badge,Button,ErrorMessage} from "../../../src/ui";
 
 export default function Exams(){
 
@@ -37,7 +38,7 @@ export default function Exams(){
 
  <Button title={show?"Ocultar filtros":"Filtrar exámenes"} secondary onPress={()=>setShow(!show)}/>
 
- {show?<Card><Copy>Tipo de examen</Copy><Button title="Todos los tipos" secondary onPress={()=>setType("")}/>{catalogue.data?.items.map(item=><Button key={item.id} title={`${type===item.id?"✓ ":""}${item.name}`} secondary onPress={()=>setType(item.id)}/>)}<ErrorMessage message={catalogue.error}/><Field label="Desde (AAAA-MM-DD)" value={from} onChangeText={setFrom} placeholder="2026-01-01" autoCapitalize="none"/><Field label="Hasta (AAAA-MM-DD)" value={to} onChangeText={setTo} placeholder="2026-12-31" autoCapitalize="none"/><ErrorMessage message={error}/><Button title="Aplicar filtros" onPress={apply}/><Button title="Limpiar filtros" secondary onPress={()=>{setType("");setFrom("");setTo("");setFilters({type:"",from:"",to:""});setOffset(0);setError("");}}/></Card>:null}
+ {show?<Card><Copy>Tipo de examen</Copy><Button title="Todos los tipos" secondary onPress={()=>setType("")}/>{catalogue.data?.items.map(item=><Button key={item.id} title={`${type===item.id?"✓ ":""}${item.name}`} secondary onPress={()=>setType(item.id)}/>)}<ErrorMessage message={catalogue.error}/><DateField label="Desde (AAAA-MM-DD)" value={from} onChangeText={setFrom}/><DateField label="Hasta (AAAA-MM-DD)" value={to} onChangeText={setTo}/><ErrorMessage message={error}/><Button title="Aplicar filtros" onPress={apply}/><Button title="Limpiar filtros" secondary onPress={()=>{setType("");setFrom("");setTo("");setFilters({type:"",from:"",to:""});setOffset(0);setError("");}}/></Card>:null}
 
  <Button title="Actualizar" secondary disabled={offline||resource.loading} onPress={resource.reload}/>
 

@@ -18,7 +18,7 @@ import {temporaryDocument,exportDocument} from "../../../src/documents/files";
 
 import PdfView from "../../../src/documents/PdfView";
 
-import {Button,Copy,ErrorMessage} from "../../../src/ui";
+import {Button,Heading,Copy,ErrorMessage} from "../../../src/ui";
 
 function Document(){
 
@@ -26,7 +26,7 @@ function Document(){
 
  const savingRef=useRef(false);
 
- const [revision,setRevision]=useState(0),[error,setError]=useState(""),[loading,setLoading]=useState(true),[file,setFile]=useState<{uri:string;base64:string;version:ExamVersion}|null>(null),[saving,setSaving]=useState(false),[notice,setNotice]=useState("");
+ const [revision,setRevision]=useState(0),[error,setError]=useState(""),[loading,setLoading]=useState(true),[file,setFile]=useState<{uri:string;base64:string;examTitle:string;version:ExamVersion}|null>(null),[saving,setSaving]=useState(false),[notice,setNotice]=useState("");
 
  useEffect(()=>{let active=true;let remove:(()=>void)|undefined;
 
@@ -36,7 +36,7 @@ function Document(){
 
  const temp=saved??await (async()=>{const result=await manager.file(`/exams/${examId}/versions/${versionId}/view`);return temporaryDocument(result.bytes,result.mimeType,version);})();
 
- if(!active){temp.remove();return;}remove=temp.remove;const base64=version.mimeType==="application/pdf"?await temp.base64():"";if(!active){remove();return;}setFile({uri:temp.uri,base64,version});setLoading(false);}catch(e){if(active){setLoading(false);setError(e instanceof Error?e.message:"No se pudo recuperar el documento.");}}}
+ if(!active){temp.remove();return;}remove=temp.remove;const base64=version.mimeType==="application/pdf"?await temp.base64():"";if(!active){remove();return;}setFile({uri:temp.uri,base64,examTitle:detail.title,version});setLoading(false);}catch(e){if(active){setLoading(false);setError(e instanceof Error?e.message:"No se pudo recuperar el documento.");}}}
 
  void load();const subscription=AppState.addEventListener("change",state=>{if(state!=="active"&&!savingRef.current){active=false;remove?.();setFile(null);router.back();}});
 
@@ -46,7 +46,7 @@ function Document(){
 
  async function save(){if(!file)return;savingRef.current=true;setSaving(true);setError("");setNotice("");try{const result=await manager.file(`/exams/${examId}/versions/${versionId}/download`);const saved=await exportDocument(result.bytes,result.mimeType,file.version);if(saved)setNotice("Copia guardada en la ubicación elegida.");}catch(e){setError(e instanceof Error?e.message:"No se pudo guardar el archivo.");}finally{savingRef.current=false;setSaving(false);}}
 
- return <SafeAreaView style={{flex:1,backgroundColor:colors.background}}><View style={{padding:16,gap:8}}><Button title="Volver" secondary onPress={()=>router.canGoBack()?router.back():router.replace("/exams")}/><Copy>{file?.version.originalFilename??"Documento"}</Copy><ErrorMessage message={error}/>{notice?<Copy>{notice}</Copy>:null}{error?<Button title="Reintentar" onPress={()=>{setLoading(true);setError("");setFile(null);setRevision(v=>v+1);}}/>:null}{file&&Platform.OS==="android"?<OfflineButton examId={examId} version={file.version}/>:null}{file?<Button title={download==="true"?"Elegir ubicación para guardar":"Descargar documento"} busy={saving} disabled={offline} onPress={()=>void save()}/>:null}</View>{loading?<ActivityIndicator accessibilityLabel="Cargando documento"/>:null}{file?.version.mimeType==="application/pdf"?<PdfView base64={file.base64} onError={()=>{setError("No se pudo abrir este PDF. Puede estar dañado o protegido.");setFile(null);}}/>:file?<Image source={{uri:file.uri}} accessibilityLabel="Documento de imagen" resizeMode="contain" style={{flex:1}} onError={()=>{setError("La imagen no se pudo visualizar.");setFile(null);}}/>:null}</SafeAreaView>;
+ return <SafeAreaView style={{flex:1,backgroundColor:colors.background}}><View style={{padding:16,gap:8}}><Button title="Volver" secondary onPress={()=>router.canGoBack()?router.back():router.replace("/exams")}/><Heading>{file?.examTitle??"Documento"}</Heading>{file?<Copy>{file.version.originalFilename} · Versión {file.version.versionNumber}</Copy>:null}<ErrorMessage message={error}/>{notice?<Copy>{notice}</Copy>:null}{error?<Button title="Reintentar" onPress={()=>{setLoading(true);setError("");setFile(null);setRevision(v=>v+1);}}/>:null}{file&&Platform.OS==="android"?<OfflineButton examId={examId} version={file.version}/>:null}{file?<Button title={download==="true"?"Elegir ubicación para guardar":"Descargar documento"} busy={saving} disabled={offline} onPress={()=>void save()}/>:null}</View>{loading?<ActivityIndicator accessibilityLabel="Cargando documento"/>:null}{file?.version.mimeType==="application/pdf"?<PdfView base64={file.base64} onError={()=>{setError("No se pudo abrir este PDF. Puede estar dañado o protegido.");setFile(null);}}/>:file?<Image source={{uri:file.uri}} accessibilityLabel="Documento de imagen" resizeMode="contain" style={{flex:1}} onError={()=>{setError("La imagen no se pudo visualizar.");setFile(null);}}/>:null}</SafeAreaView>;
 
 }
 
