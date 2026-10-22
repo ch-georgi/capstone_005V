@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     name: "WellQ",
     slug: "wellq-mobile",
-    plugins: [...(config.plugins ?? []), "expo-sqlite"].map((plugin) =>
+    plugins: [...(config.plugins ?? []), "expo-sqlite", "@react-native-community/datetimepicker"].map((plugin) =>
       Array.isArray(plugin) && plugin[0] === "expo-build-properties"
         ? [
             "expo-build-properties",

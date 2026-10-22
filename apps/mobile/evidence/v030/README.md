@@ -26,11 +26,17 @@ No habia dispositivo Android conectado ni AVD disponible. No se afirma validacio
 interactiva de selector, modo avion, reinicio, TalkBack o texto ampliado. Las historias
 permanecen In Progress hasta ese recorrido y aceptacion del equipo.
 
-Railway: sesion reautenticada y servicio/dominio verificados; SYNC_CURSOR_SECRET
-configurado sin imprimirlo. Los dos intentos de desplegar el backend fueron rechazados por
-Railway: "Deploys have been paused due to an upstream issue". El despliegue anterior
-continua vigente. No se ejecutaron seeds, resets ni migraciones nuevas en remoto.
-La validacion de sync remoto queda pendiente de que Railway acepte el despliegue.
+Railway: despliegue SUCCESS del 22 de octubre de 2026, commit
+`656b49c4c9b498574b7f6b5849b129f2855be870` desde main, despliegue
+`7a579147-b9f7-478d-a71b-77e863d54b3e`. El bloqueo de los dos intentos CLI
+anteriores queda resuelto por este despliegue desde GitHub.
+
+Validacion remota con cuentas sinteticas existentes: snapshot y delta correctos,
+401 sin autenticacion, 400 ante cursor adulterado, 409 ante cursor de otra cuenta
+y 403 ante otra clinica. El snapshot contiene solo la ficha propia; detalle e
+historial coinciden con la API y un documento sintetico conserva tamano y SHA-256.
+No se crearon ni modificaron registros clinicos ni se ejecutaron seeds/resets.
+Ver `remote-sync.json`. Queda pendiente el recorrido interactivo en Android.
 
 ## Recorrido reproducible en Android
 

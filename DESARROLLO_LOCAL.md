@@ -348,4 +348,13 @@ apuntar esas suites ni sus fixtures a Railway. La API aislada para el APK local
 Las historias moviles permanecen In Progress hasta completar la aceptacion en
 Android: modo avion, reinicio, seleccion, nuevas versiones, salida con pendientes,
 TalkBack y texto ampliado. La compilacion y las pruebas automatizadas no sustituyen
-ese recorrido. El backend de sync requiere despliegue antes de usarlo en Railway.
+ese recorrido. El backend de sync ya esta desplegado y validado en Railway (22 de octubre de 2026, commit 656b49c); ver remote-sync.json en la evidencia v030.
+
+
+### Actualizacion Android 0.3.1
+
+Para las pruebas en dispositivo usar wellq-0.3.1-production.apk: corrige el envio
+multipart de JPG/PDF/PNG con Expo 57 e incorpora calendario Android para seleccionar
+fechas. Instalar sobre la version anterior para conservar operaciones pendientes;
+no borrar los datos de la app. Esta correccion es movil y usa la API ya desplegada.
+Ver apps/mobile/evidence/v031/README.md.
