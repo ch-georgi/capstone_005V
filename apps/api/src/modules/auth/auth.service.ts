@@ -45,6 +45,7 @@ export class AuthService {
     });
     return {
       isSystemAdmin: user.isSystemAdmin,
+      gender: user.gender,
       clinics: memberships.map((m) => ({ clinicId: m.clinicId, clinicName: m.clinic.name, role: m.role, displayName: m.displayName })),
     };
   }

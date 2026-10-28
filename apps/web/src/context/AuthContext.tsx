@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { login as apiLogin, type LoginRequest, type TenantRole } from "../lib/api";
+import { login as apiLogin, type LoginRequest, type TenantRole, type Gender } from "../lib/api";
 
 type SessionContext = "GLOBAL" | "TENANT";
 
-export type LoginProfile = { clinicName: string; displayName: string; role: TenantRole };
+export type LoginProfile = { clinicName?: string; displayName?: string; role?: TenantRole; gender: Gender };
 
 type Session = {
   accessToken: string;
@@ -14,6 +14,7 @@ type Session = {
   userId: string | null;
   displayName: string | null;
   role: TenantRole | null;
+  gender: Gender;
 };
 
 type AuthContextValue = {
@@ -56,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userId: claims.sub ?? null,
       displayName: profile?.displayName ?? null,
       role: profile?.role ?? null,
+      gender: profile?.gender ?? "UNSPECIFIED",
     });
   }, []);
 

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
-import { TenantRole } from '@prisma/client';
+import { Gender, TenantRole } from '@prisma/client';
 
 export class VerifyClinicsDto {
   @ApiProperty({ example: 'admin1@example.com', format: 'email', maxLength: 254 })
@@ -22,6 +22,9 @@ export class ClinicOptionDto {
 export class VerifyClinicsResponseDto {
   @ApiProperty({ description: 'true si la cuenta tiene sesión global de superadmin disponible.' })
   isSystemAdmin!: boolean;
+
+  @ApiProperty({ enum: Gender, enumName: 'Gender', description: 'Género de la cuenta, usado para personalizar saludos.' })
+  gender!: Gender;
 
   @ApiProperty({ type: [ClinicOptionDto], description: 'Clínicas activas donde esta cuenta tiene membresía activa.' })
   clinics!: ClinicOptionDto[];

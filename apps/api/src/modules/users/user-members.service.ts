@@ -9,7 +9,7 @@ import { AuditService } from '../audit/audit.service';
 import { ListMembersQueryDto, MemberDto, MemberPageDto, UpdateMemberDto } from './dto/member.dto';
 
 const memberInclude = {
-  user: { select: { email: true, passwordHash: true } },
+  user: { select: { email: true, passwordHash: true, gender: true } },
   patient: { select: { id: true } },
 } satisfies Prisma.UserClinicInclude;
 type MemberRow = Prisma.UserClinicGetPayload<{ include: typeof memberInclude }>;
@@ -18,7 +18,7 @@ const MAX_ATTEMPTS = 3;
 const TX_OPTIONS = { maxWait: 5_000, timeout: 10_000 } as const;
 
 export const toMember = (row: MemberRow): MemberDto => ({
-  id: row.userId, email: row.user.email ?? null, displayName: row.displayName, role: row.role, isActive: row.isActive,
+  id: row.userId, email: row.user.email ?? null, displayName: row.displayName, gender: row.user.gender, role: row.role, isActive: row.isActive,
   hasCredentials: !!row.user.passwordHash, patientId: row.patient?.id ?? null,
   createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
 });
@@ -59,7 +59,7 @@ export class UserMembersService {
   }
 
   async update(ctx: TenantContext, userId: string, dto: UpdateMemberDto, info: RequestInfo): Promise<MemberDto> {
-    if (dto.displayName === undefined && dto.role === undefined && dto.isActive === undefined) {
+    if (dto.displayName === undefined && dto.gender === undefined && dto.role === undefined && dto.isActive === undefined) {
       throw apiError(400, 'EMPTY_UPDATE', 'Indica al menos un campo para modificar.');
     }
     const self = userId === ctx.actorId;
@@ -94,9 +94,15 @@ export class UserMembersService {
             data.role = dto.role; changed.push('role'); metadata.roleFrom = row.role; metadata.roleTo = dto.role;
           }
           if (dto.isActive !== undefined && dto.isActive !== row.isActive) { data.isActive = dto.isActive; changed.push('isActive'); }
+          if (dto.gender !== undefined && dto.gender !== row.user.gender) { changed.push('gender'); }
           if (!changed.length) return; // Sin cambios reales: no se escribe ni se audita.
 
-          await tx.userClinic.update({ where: { userId_clinicId: { userId, clinicId: ctx.clinicId } }, data });
+          if (dto.gender !== undefined && dto.gender !== row.user.gender) {
+            await tx.user.update({ where: { id: userId }, data: { gender: dto.gender } });
+          }
+          if (Object.keys(data).length) {
+            await tx.userClinic.update({ where: { userId_clinicId: { userId, clinicId: ctx.clinicId } }, data });
+          }
           await this.audit.record({
             clinicId: ctx.clinicId, actorId: ctx.actorId, action: AuditAction.UPDATE, patientId: row.patient?.id,
             metadata: { ...metadata, changedFields: changed }, ...info,

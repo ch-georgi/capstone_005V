@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, TenantRole } from '@prisma/client';
+import { Gender, Prisma, TenantRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from '../auth/password.service';
 import { ContextService } from '../auth/context.service';
@@ -39,12 +39,15 @@ export class UsersService {
         if (current.kind === 'TENANT' && (current.role !== TenantRole.CLINIC_ADMIN || current.access !== 'READ_WRITE')) {
           throw apiError(403, 'FORBIDDEN', 'Se requiere administrador activo de la clínica.');
         }
-        const user = await tx.user.create({ data: { email, passwordHash, isSystemAdmin: false }, select: { id: true, email: true, createdAt: true } });
+        const user = await tx.user.create({
+          data: { email, passwordHash, isSystemAdmin: false, gender: input.gender ?? Gender.UNSPECIFIED },
+          select: { id: true, email: true, createdAt: true, gender: true },
+        });
         const membership = await tx.userClinic.create({ data: {
           userId: user.id, clinicId, role: input.role, displayName: input.displayName.trim(), isActive: true,
         } });
         return { id: user.id, email: user.email!, clinicId, displayName: membership.displayName,
-          role: membership.role, isActive: membership.isActive, createdAt: user.createdAt.toISOString() };
+          role: membership.role, isActive: membership.isActive, createdAt: user.createdAt.toISOString(), gender: user.gender };
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

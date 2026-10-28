@@ -22,6 +22,7 @@ export function Login() {
   const [verifying, setVerifying] = useState(false);
   const [clinics, setClinics] = useState<ClinicOption[]>([]);
   const [isSystemAdmin, setIsSystemAdmin] = useState(false);
+  const [gender, setGender] = useState<"FEMALE" | "MALE" | "UNSPECIFIED">("UNSPECIFIED");
   const [selected, setSelected] = useState<string>("");
   const [pendingCredentials, setPendingCredentials] = useState<CredentialsFormValues | null>(null);
 
@@ -34,11 +35,13 @@ export function Login() {
     defaultValues: { email: "", password: "" },
   });
 
-  const finishLogin = async (credentials: CredentialsFormValues, clinic?: ClinicOption) => {
+  const finishLogin = async (credentials: CredentialsFormValues, clinic?: ClinicOption, accountGender: "FEMALE" | "MALE" | "UNSPECIFIED" = gender) => {
     try {
       await login(
         { ...credentials, clinicId: clinic?.clinicId },
-        clinic ? { clinicName: clinic.clinicName, displayName: clinic.displayName, role: clinic.role } : undefined,
+        clinic
+          ? { clinicName: clinic.clinicName, displayName: clinic.displayName, role: clinic.role, gender: accountGender }
+          : { gender: accountGender },
       );
       navigate("/");
     } catch (err) {
@@ -57,16 +60,17 @@ export function Login() {
         return;
       }
       if (result.clinics.length === 1 && !result.isSystemAdmin) {
-        await finishLogin(values, result.clinics[0]);
+        await finishLogin(values, result.clinics[0], result.gender);
         return;
       }
       if (result.clinics.length === 0 && result.isSystemAdmin) {
-        await finishLogin(values);
+        await finishLogin(values, undefined, result.gender);
         return;
       }
       // Más de una opción: la cuenta tiene varias clínicas y/o acceso global.
       setClinics(result.clinics);
       setIsSystemAdmin(result.isSystemAdmin);
+      setGender(result.gender);
       setPendingCredentials(values);
       setSelected(result.isSystemAdmin ? GLOBAL_OPTION : result.clinics[0].clinicId);
       setStep("pick-clinic");

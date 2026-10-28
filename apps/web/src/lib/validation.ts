@@ -32,6 +32,13 @@ export const tenantRoleLabels: Record<(typeof tenantRoles)[number], string> = {
   PATIENT: "Paciente",
 };
 
+export const genders = ["FEMALE", "MALE", "UNSPECIFIED"] as const;
+export const genderLabels: Record<(typeof genders)[number], string> = {
+  FEMALE: "Femenino",
+  MALE: "Masculino",
+  UNSPECIFIED: "Prefiero no decir",
+};
+
 export const createUserSchema = z.object({
   email,
   password: z
@@ -44,6 +51,7 @@ export const createUserSchema = z.object({
     .min(1, "El nombre para mostrar es obligatorio.")
     .max(100, "El nombre es demasiado largo (máx. 100 caracteres)."),
   role: z.enum(tenantRoles, { message: "Selecciona un rol válido." }),
+  gender: z.enum(genders, { message: "Selecciona una opción válida." }),
 });
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
@@ -55,6 +63,7 @@ export const updateMemberSchema = z.object({
     .trim()
     .min(1, "El nombre para mostrar es obligatorio.")
     .max(100, "El nombre es demasiado largo (máx. 100 caracteres)."),
+  gender: z.enum(genders, { message: "Selecciona una opción válida." }),
   role: z.enum(staffRoles, { message: "Selecciona un rol válido." }),
   isActive: z.boolean(),
 });
