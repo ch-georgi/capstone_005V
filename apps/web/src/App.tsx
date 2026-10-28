@@ -9,6 +9,8 @@ import { Patients } from "./pages/Patients";
 import { PatientForm } from "./pages/PatientForm";
 import { PatientDetail } from "./pages/PatientDetail";
 import { Audit } from "./pages/Audit";
+import { Members } from "./pages/Members";
+import { MemberDetail } from "./pages/MemberDetail";
 
 export default function App() {
   return (
@@ -38,6 +40,8 @@ export default function App() {
         <Route path="/pacientes/:patientId" element={<ProtectedRoute><PatientDetail /></ProtectedRoute>} />
         <Route path="/pacientes/:patientId/editar" element={<ProtectedRoute><PatientForm /></ProtectedRoute>} />
         <Route path="/auditoria" element={<ProtectedRoute><Audit /></ProtectedRoute>} />
+        <Route path="/profesionales" element={<ProtectedRoute><Members /></ProtectedRoute>} />
+        <Route path="/profesionales/:userId" element={<ProtectedRoute><MemberDetail /></ProtectedRoute>} />
       </Routes>
     </>
   );

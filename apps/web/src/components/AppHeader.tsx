@@ -18,6 +18,7 @@ export function AppHeader() {
         {isAuthenticated ? (
           <nav className="app-nav">
             <Link to="/pacientes">Pacientes</Link>
+            <Link to="/profesionales">Profesionales</Link>
             <Link to="/auditoria">Auditoría</Link>
             <button type="button" className="link-button" onClick={logout}>
               Cerrar sesión
