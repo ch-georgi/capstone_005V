@@ -5,10 +5,12 @@ import { TextField } from "../components/ui/TextField";
 import { SelectField } from "../components/ui/SelectField";
 import { Button } from "../components/ui/Button";
 import { FormBanner } from "../components/ui/FormBanner";
-import { ApiError, getMember, updateMember, type Member } from "../lib/api";
-import { tenantRoleLabels } from "../lib/validation";
+import { ApiError, getMember, updateMember, type Gender, type Member } from "../lib/api";
+import { genderLabels, genders, tenantRoleLabels } from "../lib/validation";
 import { useAuth } from "../context/AuthContext";
 import "./Clinical.css";
+
+const genderOptions = genders.map((value) => ({ value, label: genderLabels[value] }));
 
 export function MemberDetail() {
   const { userId } = useParams();
@@ -18,6 +20,7 @@ export function MemberDetail() {
 
   const [member, setMember] = useState<Member | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [gender, setGender] = useState<Gender>("UNSPECIFIED");
   const [role, setRole] = useState<"CLINIC_ADMIN" | "CLINICIAN">("CLINICIAN");
   const [isActive, setIsActive] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +33,7 @@ export function MemberDetail() {
       .then((m) => {
         setMember(m);
         setDisplayName(m.displayName);
+        setGender(m.gender);
         if (m.role !== "PATIENT") setRole(m.role);
         setIsActive(m.isActive);
       })
@@ -43,7 +47,7 @@ export function MemberDetail() {
     setSuccess(false);
     setSaving(true);
     try {
-      const body: { displayName: string; isActive: boolean; role?: "CLINIC_ADMIN" | "CLINICIAN" } = { displayName, isActive };
+      const body: { displayName: string; gender: Gender; isActive: boolean; role?: "CLINIC_ADMIN" | "CLINICIAN" } = { displayName, gender, isActive };
       if (member?.role !== "PATIENT") body.role = role;
       const saved = await updateMember(token, userId, body);
       setMember(saved);
@@ -92,6 +96,12 @@ export function MemberDetail() {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={100}
+          />
+          <SelectField
+            label="Género"
+            value={gender}
+            onChange={(e) => setGender(e.target.value as Gender)}
+            options={genderOptions}
           />
           {member.role === "PATIENT" ? (
             <TextField label="Rol" value={tenantRoleLabels.PATIENT} disabled readOnly />

@@ -17,6 +17,14 @@ enum TenantRole {
   @@map("tenant_role")
 }
 
+enum Gender {
+  FEMALE
+  MALE
+  UNSPECIFIED
+
+  @@map("gender")
+}
+
 enum AuditAction {
   CREATE
   VIEW
@@ -84,6 +92,7 @@ model User {
   email           String?             @unique
   passwordHash    String?             @map("password_hash")
   isSystemAdmin   Boolean             @default(false) @map("is_system_admin")
+  gender          Gender              @default(UNSPECIFIED)
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @map("updated_at") @db.Timestamptz(3)
   userClinics     UserClinic[]

@@ -31,19 +31,23 @@ const SLIDES = [
   },
 ];
 
+const welcomeWord = (gender: "FEMALE" | "MALE" | "UNSPECIFIED" | undefined) =>
+  gender === "FEMALE" ? "Bienvenida" : gender === "MALE" ? "Bienvenido" : "Bienvenido/a";
+
 export function Welcome() {
   const { session } = useAuth();
+  const welcome = welcomeWord(session?.gender);
 
   return (
     <main className="welcome container">
       <div className="welcome-greeting">
         <h1>
           {session?.displayName ? (
-            <>Bienvenido/a, <span className="welcome-clinic">{session.displayName}</span></>
+            <>{welcome}, <span className="welcome-clinic">{session.displayName}</span></>
           ) : session?.context === "GLOBAL" ? (
-            "Bienvenido/a, administración global"
+            `${welcome}, administración global`
           ) : (
-            "Bienvenido/a a WellQ"
+            `${welcome} a WellQ`
           )}
         </h1>
         {session?.clinicName ? (

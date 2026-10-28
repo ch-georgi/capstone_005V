@@ -7,12 +7,13 @@ import { SelectField } from "../components/ui/SelectField";
 import { Button } from "../components/ui/Button";
 import { FormBanner } from "../components/ui/FormBanner";
 import { PasswordStrengthMeter } from "../components/ui/PasswordStrength";
-import { createUserSchema, tenantRoleLabels, tenantRoles, type CreateUserFormValues } from "../lib/validation";
+import { createUserSchema, genderLabels, genders, tenantRoleLabels, tenantRoles, type CreateUserFormValues } from "../lib/validation";
 import { ApiError, createUserInClinic, listClinics, type Clinic } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import "./AuthCard.css";
 
 const roleOptions = tenantRoles.map((value) => ({ value, label: tenantRoleLabels[value] }));
+const genderOptions = genders.map((value) => ({ value, label: genderLabels[value] }));
 
 /** Igual que CreateUser, pero para el superadmin global: primero elige la clínica destino. */
 export function SystemAdminCreateUser() {
@@ -31,7 +32,7 @@ export function SystemAdminCreateUser() {
     formState: { errors, isSubmitting },
   } = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
-    defaultValues: { email: "", password: "", displayName: "", role: "CLINIC_ADMIN" },
+    defaultValues: { email: "", password: "", displayName: "", role: "CLINIC_ADMIN", gender: "UNSPECIFIED" },
   });
 
   const password = watch("password");
@@ -131,6 +132,12 @@ export function SystemAdminCreateUser() {
             options={roleOptions}
             error={errors.role?.message}
             {...register("role")}
+          />
+          <SelectField
+            label="Género"
+            options={genderOptions}
+            error={errors.gender?.message}
+            {...register("gender")}
           />
 
           <Button type="submit" loading={isSubmitting}>

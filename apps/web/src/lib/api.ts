@@ -86,8 +86,9 @@ export function login(input: LoginRequest) {
   return apiRequest<LoginResponse>("/auth/login", { method: "POST", body: input });
 }
 
+export type Gender = "FEMALE" | "MALE" | "UNSPECIFIED";
 export type ClinicOption = { clinicId: string; clinicName: string; role: TenantRole; displayName: string };
-export type VerifyClinicsResponse = { isSystemAdmin: boolean; clinics: ClinicOption[] };
+export type VerifyClinicsResponse = { isSystemAdmin: boolean; gender: Gender; clinics: ClinicOption[] };
 
 /** Valida credenciales y devuelve las clínicas elegibles, sin emitir token. */
 export function verifyClinics(input: { email: string; password: string }) {
@@ -95,10 +96,10 @@ export function verifyClinics(input: { email: string; password: string }) {
 }
 
 export type TenantRole = "CLINIC_ADMIN" | "CLINICIAN" | "PATIENT";
-export type CreateUserRequest = { email: string; password: string; displayName: string; role: TenantRole };
+export type CreateUserRequest = { email: string; password: string; displayName: string; role: TenantRole; gender?: Gender };
 export type CreatedUser = {
   id: string; email: string; clinicId: string; displayName: string;
-  role: TenantRole; isActive: boolean; createdAt: string;
+  role: TenantRole; isActive: boolean; createdAt: string; gender: Gender;
 };
 
 export function createUser(input: CreateUserRequest, token: string) {
@@ -140,13 +141,13 @@ export const updatePatient = (token: string, id: string, input: Partial<PatientI
 
 // ---------- Miembros de la clínica (personal y cuentas de paciente) ----------
 export type Member = {
-  id: string; email: string | null; displayName: string; role: TenantRole; isActive: boolean;
+  id: string; email: string | null; displayName: string; gender: Gender; role: TenantRole; isActive: boolean;
   hasCredentials: boolean; patientId: string | null; createdAt: string; updatedAt: string;
 };
 export const listMembers = (token: string, p: { role?: TenantRole; isActive?: boolean; q?: string; limit?: number; offset?: number }) =>
   apiRequest<Page<Member>>(`/users${qs({ ...p, isActive: p.isActive === undefined ? undefined : String(p.isActive) })}`, { token });
 export const getMember = (token: string, userId: string) => apiRequest<Member>(`/users/${userId}`, { token });
-export type UpdateMemberInput = { displayName?: string; role?: "CLINIC_ADMIN" | "CLINICIAN"; isActive?: boolean };
+export type UpdateMemberInput = { displayName?: string; gender?: Gender; role?: "CLINIC_ADMIN" | "CLINICIAN"; isActive?: boolean };
 export const updateMember = (token: string, userId: string, input: UpdateMemberInput) =>
   apiRequest<Member>(`/users/${userId}`, { method: "PATCH", body: input, token });
 

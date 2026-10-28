@@ -7,12 +7,13 @@ import { SelectField } from "../components/ui/SelectField";
 import { Button } from "../components/ui/Button";
 import { FormBanner } from "../components/ui/FormBanner";
 import { PasswordStrengthMeter } from "../components/ui/PasswordStrength";
-import { createUserSchema, tenantRoleLabels, tenantRoles, type CreateUserFormValues } from "../lib/validation";
+import { createUserSchema, genderLabels, genders, tenantRoleLabels, tenantRoles, type CreateUserFormValues } from "../lib/validation";
 import { ApiError, createUser } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import "./AuthCard.css";
 
 const roleOptions = tenantRoles.map((value) => ({ value, label: tenantRoleLabels[value] }));
+const genderOptions = genders.map((value) => ({ value, label: genderLabels[value] }));
 
 export function CreateUser() {
   const { session } = useAuth();
@@ -27,7 +28,7 @@ export function CreateUser() {
     formState: { errors, isSubmitting },
   } = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
-    defaultValues: { email: "", password: "", displayName: "", role: "CLINICIAN" },
+    defaultValues: { email: "", password: "", displayName: "", role: "CLINICIAN", gender: "UNSPECIFIED" },
   });
 
   const password = watch("password");
@@ -112,6 +113,12 @@ export function CreateUser() {
             options={roleOptions}
             error={errors.role?.message}
             {...register("role")}
+          />
+          <SelectField
+            label="Género"
+            options={genderOptions}
+            error={errors.gender?.message}
+            {...register("gender")}
           />
 
           <Button type="submit" loading={isSubmitting}>

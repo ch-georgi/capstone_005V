@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { TenantRole } from '@prisma/client';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Gender, TenantRole } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ format: 'email', example: 'profesional@example.com', maxLength: 254 })
@@ -17,6 +17,9 @@ export class CreateUserDto {
 
   @ApiProperty({ enum: TenantRole, enumName: 'TenantRole', example: TenantRole.CLINICIAN })
   @IsEnum(TenantRole) role!: TenantRole;
+
+  @ApiPropertyOptional({ enum: Gender, enumName: 'Gender', default: Gender.UNSPECIFIED, description: 'Usado para personalizar saludos (ej. "Bienvenido"/"Bienvenida").' })
+  @IsOptional() @IsEnum(Gender) gender?: Gender;
 }
 export class CreatedUserDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
@@ -26,4 +29,5 @@ export class CreatedUserDto {
   @ApiProperty({ enum: TenantRole, enumName: 'TenantRole' }) role!: TenantRole;
   @ApiProperty({ example: true }) isActive!: boolean;
   @ApiProperty({ format: 'date-time', example: '2026-10-05T12:00:00.000Z' }) createdAt!: string;
+  @ApiProperty({ enum: Gender, enumName: 'Gender' }) gender!: Gender;
 }
