@@ -12,7 +12,7 @@ jest.mock("../src/documents/PdfView", () => ({ __esModule: true, default: ({ onE
 const request = jest.fn(), file = jest.fn(), remove = jest.fn();
 beforeEach(() => {
   request.mockReset(); file.mockReset(); remove.mockReset();
-  request.mockResolvedValue({ versions: [{ id: "version", originalFilename: "test.pdf", mimeType: "application/pdf" }] });
+  request.mockResolvedValue({ versions: [{ id: "version", versionNumber: 1, originalFilename: "test.pdf", mimeType: "application/pdf" }] });
   file.mockResolvedValue({ bytes: new Uint8Array([1]), mimeType: "application/pdf" });
   (temporaryDocument as jest.Mock).mockResolvedValue({ uri: "private://test.pdf", base64: async () => "test", remove });
   (exportDocument as jest.Mock).mockResolvedValue(false);
@@ -24,7 +24,7 @@ it("keeps back and retry available when storage is missing", async () => {
   expect(await screen.findByText("El archivo no está disponible.")).toBeTruthy();
   expect(screen.getByText("Volver")).toBeTruthy();
   await fireEvent.press(screen.getByText("Reintentar"));
-  expect(await screen.findByText("test.pdf")).toBeTruthy();
+  expect(await screen.findByText("test.pdf · Versión 1")).toBeTruthy();
 });
 it("handles PDF renderer failures without crashing the route", async () => {
   await render(<DocumentRoute />);
@@ -35,7 +35,7 @@ it("handles PDF renderer failures without crashing the route", async () => {
 it("treats cancelling the Android destination picker as a normal result", async () => {
   const view = await render(<DocumentRoute />);
   await fireEvent.press(await screen.findByText("Descargar documento"));
-  expect(await screen.findByText("test.pdf")).toBeTruthy();
+  expect(await screen.findByText("test.pdf · Versión 1")).toBeTruthy();
   expect(screen.queryByText(/No se pudo guardar/)).toBeNull();
   await view.unmount();
   expect(remove).toHaveBeenCalled();

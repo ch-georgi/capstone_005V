@@ -174,3 +174,32 @@ el SQL compartido; no editar `src/clinical/schema.ts` a mano. La vista web conse
 consulta online; las pantallas de persistencia requieren Android.
 
 Ver [evidencia y validaciones pendientes](evidence/v030/README.md).
+
+
+## Correcciones Android 0.3.1
+
+El APK 0.3.1 (versionCode 4) corrige el multipart de Expo 57: usa un archivo
+con bytes, nombre original y MIME verificado, en lugar del descriptor URI de
+React Native que el fetch actual rechaza antes de enviar la solicitud.
+La cola, los UUID y los hashes existentes se conservan; instalar la actualizacion
+sobre 0.3.0, sin desinstalar ni borrar datos, y reintentar desde Cargas pendientes.
+Si se agotaron los ocho intentos, usar Reintentar con los mismos datos.
+
+Fecha del examen y filtros de fecha abren calendario nativo Android. La seleccion
+se guarda como fecha clinica local YYYY-MM-DD, sin convertir el dia a UTC; cancelar
+el calendario conserva el valor anterior.
+
+Un log ExamFilesService con la version 00000008-0000-4000-8000-000000000002
+corresponde a un PDF del seed cuyo objeto no existe en almacenamiento, no a la
+creacion de un JPG nuevo. Esa incidencia de datos de demostracion es independiente
+del fallo multipart y no se modificaron esos registros durante esta correccion.
+
+Ver evidencia en evidence/v031/README.md y APK artifacts/wellq-0.3.1-production.apk.
+
+### Android 0.3.2: identificar copias offline
+
+La lista de documentos sin conexión muestra el título del examen sobre el nombre
+del archivo y su versión. El visor también muestra ese título, obtenido del
+detalle local cuando no hay conexión. La consulta une examen y versión por usuario,
+clínica e identificador del examen. No requiere migración ni descargar de nuevo
+las copias existentes. APK: `artifacts/wellq-0.3.2-production.apk`.
