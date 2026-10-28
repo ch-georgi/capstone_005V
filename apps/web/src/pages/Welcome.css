@@ -33,6 +33,12 @@
 /* --- Carrusel (React-Bootstrap), re-temado con los tokens de WellQ --- */
 .welcome-carousel {
   --bs-carousel-indicator-active-bg: var(--teal);
+  /* Degradé de color + oscurecido hacia la izquierda, donde va el texto,
+     para que las fotos reales (public/carousel) se vean y el texto siga legible. */
+  --slide-scrim-teal: linear-gradient(100deg, rgba(7, 92, 61, 0.93) 0%, rgba(7, 92, 61, 0.74) 42%, rgba(7, 92, 61, 0.25) 80%);
+  --slide-scrim-blue: linear-gradient(100deg, rgba(13, 74, 115, 0.93) 0%, rgba(13, 74, 115, 0.74) 42%, rgba(13, 74, 115, 0.25) 80%);
+  --slide-scrim-purple: linear-gradient(100deg, rgba(58, 22, 100, 0.93) 0%, rgba(58, 22, 100, 0.74) 42%, rgba(58, 22, 100, 0.25) 80%);
+  --slide-scrim-orange: linear-gradient(100deg, rgba(154, 69, 7, 0.93) 0%, rgba(154, 69, 7, 0.74) 42%, rgba(154, 69, 7, 0.25) 80%);
   border-radius: var(--radius-l);
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -40,7 +46,7 @@
 }
 
 .welcome-slide {
-  min-height: 260px;
+  min-height: 280px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -48,6 +54,8 @@
   padding-block: 48px;
   padding-inline: 88px;
   color: #ffffff;
+  background-size: cover;
+  background-position: center;
 }
 
 .welcome-slide h2 {
@@ -63,17 +71,12 @@
   line-height: 1.6;
 }
 
-.welcome-slide.tone-teal {
-  background: linear-gradient(135deg, #075c3d, #14b57c);
-}
-
-.welcome-slide.tone-blue {
-  background: linear-gradient(135deg, #0d4a73, #2b8fd1);
-}
-
-.welcome-slide.tone-purple {
-  background: linear-gradient(135deg, #3a1664, #8530d8);
-}
+/* El degradé + la foto se aplican inline (distinta imagen por slide);
+   estos son solo el color de respaldo mientras la foto carga. */
+.welcome-slide.tone-teal { background-color: #075c3d; }
+.welcome-slide.tone-blue { background-color: #0d4a73; }
+.welcome-slide.tone-purple { background-color: #3a1664; }
+.welcome-slide.tone-orange { background-color: #9a4507; }
 
 .welcome-carousel .carousel-control-prev,
 .welcome-carousel .carousel-control-next {

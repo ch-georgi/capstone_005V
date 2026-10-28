@@ -9,16 +9,25 @@ const SLIDES = [
     title: "Tu información, solo de tu clínica",
     text: "WellQ es multitenant: cada clínica opera en un espacio aislado. Lo que ve tu equipo nunca se cruza con los datos de otra clínica, ni al revés.",
     tone: "teal",
+    image: "/carousel/consulta.jpg",
   },
   {
-    title: "Auditoría de cada acceso",
-    text: "Cada vista, descarga o cambio sobre un examen queda registrado de forma inmutable — trazabilidad completa para tu equipo clínico.",
+    title: "Para cualquier especialidad clínica",
+    text: "Kinesiología, imagenología, laboratorio, informes y más — WellQ se adapta al tipo de examen que necesite cada especialidad de tu clínica.",
     tone: "blue",
+    image: "/carousel/kinesiologia.jpg",
   },
   {
     title: "Historial clínico versionado",
     text: "Los documentos médicos nunca se sobrescriben: cada nueva versión se conserva junto a las anteriores, con su propia huella de integridad.",
     tone: "purple",
+    image: "/carousel/clinica-dental.jpg",
+  },
+  {
+    title: "Auditoría de cada acceso",
+    text: "Cada vista, descarga o cambio sobre un examen queda registrado de forma inmutable — trazabilidad completa para tu equipo clínico.",
+    tone: "orange",
+    image: "/carousel/evaluacion.jpg",
   },
 ];
 
@@ -60,7 +69,10 @@ export function Welcome() {
       <Carousel className="welcome-carousel" indicators controls interval={6000}>
         {SLIDES.map((slide) => (
           <Carousel.Item key={slide.title}>
-            <div className={`welcome-slide tone-${slide.tone}`}>
+            <div
+              className={`welcome-slide tone-${slide.tone}`}
+              style={{ backgroundImage: `var(--slide-scrim-${slide.tone}), url(${slide.image})` }}
+            >
               <h2>{slide.title}</h2>
               <p>{slide.text}</p>
             </div>

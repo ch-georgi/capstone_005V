@@ -13,7 +13,8 @@ async function main() {
   // Credencial de prueba corta para probar manualmente el login (dato sintético, no real).
   const adminTestHash=await argon2.hash('12345');
   const clinics=[id(1,1),id(1,2)];
-  for (let i=0;i<2;i++) await db.clinic.upsert({where:{id:clinics[i]},update:{},create:{id:clinics[i],name:`Clínica ${i?'B':'A'}`,code:`CLINIC_${i?'B':'A'}`}});
+  const clinicNames=['Clínica Vitalis','Clínica Boreal'], clinicCodes=['VITALIS','BOREAL'];
+  for (let i=0;i<2;i++) await db.clinic.upsert({where:{id:clinics[i]},update:{},create:{id:clinics[i],name:clinicNames[i],code:clinicCodes[i]}});
   const codes=['LAB','IMAGING','MEDICAL_REPORT','REFERRAL','FUNCTIONAL','OTHER'];
   const names=['Laboratorio','Imagenología','Informe médico','Derivación','Evaluación funcional','Otro'];
   for(let i=0;i<codes.length;i++) await db.examType.upsert({where:{id:id(2,i+1)},update:{},create:{id:id(2,i+1),code:codes[i],name:names[i]}});
@@ -21,9 +22,10 @@ async function main() {
   const membership=async(uid:string,clinicId:string,role:TenantRole,displayName:string,isActive=true)=>db.userClinic.upsert({where:{userId_clinicId:{userId:uid,clinicId}},update:{},create:{userId:uid,clinicId,role,displayName,isActive}});
   await makeUser(id(3,99),'systemadmin@wellq.com',adminTestHash);
   await db.user.update({where:{id:id(3,99)},data:{isSystemAdmin:true}});
+  const adminEmails=['admin@wellq.cl','admin@boreal.cl'], adminNames=['Francisca Herrera','Matías Fuentes'];
   for(let i=0;i<2;i++) {
-    await makeUser(id(3,i+1), i===0?'admin@wellq.cl':`admin${i+1}@example.com`, i===0?adminTestHash:passwordHash);
-    await membership(id(3,i+1),clinics[i],TenantRole.CLINIC_ADMIN,`Administrador ${i+1}`);
+    await makeUser(id(3,i+1), adminEmails[i], i===0?adminTestHash:passwordHash);
+    await membership(id(3,i+1),clinics[i],TenantRole.CLINIC_ADMIN,adminNames[i]);
   }
   // Same account: administrator in A, clinician in B, with independent activation.
   await membership(id(3,1),clinics[1],TenantRole.CLINICIAN,'Profesional compartido',false);
