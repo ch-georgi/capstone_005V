@@ -23,6 +23,20 @@
   margin: 0 0 24px;
 }
 
+.create-user-clinic {
+  margin: -14px 0 20px;
+  padding: 8px 12px;
+  border-radius: var(--radius-s);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.create-user-clinic strong {
+  color: var(--text);
+}
+
 .auth-advanced-toggle {
   display: block;
   font-size: 13px;

@@ -43,7 +43,9 @@ export function Patients() {
     <main className="container clinical">
       <div className="clinical-head">
         <h1>Pacientes</h1>
-        <Link to="/pacientes/nuevo" className="btn btn-primary">Nuevo paciente</Link>
+        {session?.role === "CLINIC_ADMIN" ? (
+          <Link to="/pacientes/nuevo" className="btn btn-primary">Nuevo paciente</Link>
+        ) : null}
       </div>
       <Card>
         <label className="sr-only" htmlFor="patient-search">Buscar paciente</label>

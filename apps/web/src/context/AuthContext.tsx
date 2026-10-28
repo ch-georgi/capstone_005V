@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { login as apiLogin, type LoginRequest } from "../lib/api";
+import { login as apiLogin, type LoginRequest, type TenantRole } from "../lib/api";
 
 type SessionContext = "GLOBAL" | "TENANT";
+
+export type LoginProfile = { clinicName: string; displayName: string; role: TenantRole };
 
 type Session = {
   accessToken: string;
@@ -10,12 +12,14 @@ type Session = {
   clinicId: string | null;
   clinicName: string | null;
   userId: string | null;
+  displayName: string | null;
+  role: TenantRole | null;
 };
 
 type AuthContextValue = {
   session: Session | null;
   isAuthenticated: boolean;
-  login: (input: LoginRequest, clinicName?: string) => Promise<void>;
+  login: (input: LoginRequest, profile?: LoginProfile) => Promise<void>;
   logout: () => void;
 };
 
@@ -40,7 +44,7 @@ function decodeJwtPayload(token: string): { sub?: string; context?: string; clin
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
 
-  const login = useCallback(async (input: LoginRequest, clinicName?: string) => {
+  const login = useCallback(async (input: LoginRequest, profile?: LoginProfile) => {
     const response = await apiLogin(input);
     const claims = decodeJwtPayload(response.accessToken);
     setSession({
@@ -48,8 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       expiresAt: Date.now() + response.expiresIn * 1000,
       context: claims.context === "GLOBAL" ? "GLOBAL" : "TENANT",
       clinicId: claims.clinicId ?? null,
-      clinicName: clinicName ?? null,
+      clinicName: profile?.clinicName ?? null,
       userId: claims.sub ?? null,
+      displayName: profile?.displayName ?? null,
+      role: profile?.role ?? null,
     });
   }, []);
 

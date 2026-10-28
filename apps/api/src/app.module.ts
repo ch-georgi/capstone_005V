@@ -12,10 +12,11 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { ExamVersionsModule } from './modules/exam-versions/exam-versions.module';
 import { ExamTypesModule } from './modules/exam-types/exam-types.module';
 import { ExamsModule } from './modules/exams/exams.module';
+import { ClinicsModule } from './modules/clinics/clinics.module';
 
 @Module({ imports: [
   ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
   SyncModule, PrismaModule, StorageModule, AuthModule, UsersModule, PatientsModule, AuditModule,
-  UploadsModule, ExamVersionsModule, ExamTypesModule, ExamsModule,
+  UploadsModule, ExamVersionsModule, ExamTypesModule, ExamsModule, ClinicsModule,
 ] })
 export class AppModule {}

@@ -86,7 +86,7 @@ export function login(input: LoginRequest) {
   return apiRequest<LoginResponse>("/auth/login", { method: "POST", body: input });
 }
 
-export type ClinicOption = { clinicId: string; clinicName: string; role: TenantRole };
+export type ClinicOption = { clinicId: string; clinicName: string; role: TenantRole; displayName: string };
 export type VerifyClinicsResponse = { isSystemAdmin: boolean; clinics: ClinicOption[] };
 
 /** Valida credenciales y devuelve las clínicas elegibles, sin emitir token. */
@@ -104,6 +104,12 @@ export type CreatedUser = {
 export function createUser(input: CreateUserRequest, token: string) {
   return apiRequest<CreatedUser>("/users", { method: "POST", body: input, token });
 }
+
+// ---------- Superadmin global ----------
+export type Clinic = { id: string; name: string; code: string };
+export const listClinics = (token: string) => apiRequest<{ items: Clinic[] }>("/clinics", { token });
+export const createUserInClinic = (input: CreateUserRequest, clinicId: string, token: string) =>
+  apiRequest<CreatedUser>(`/clinics/${clinicId}/users`, { method: "POST", body: input, token });
 
 // ---------- Pacientes ----------
 export type Patient = {

@@ -15,6 +15,13 @@
   color: var(--teal);
 }
 
+.welcome-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 .welcome-greeting .btn { margin-top: 18px; }
 
 .welcome-lede {

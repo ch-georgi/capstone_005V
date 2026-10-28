@@ -67,6 +67,11 @@ export function CreateUser() {
         <p className="auth-sub">
           Da de alta una cuenta para un profesional, paciente u otro administrador de tu clínica.
         </p>
+        {session?.clinicName ? (
+          <p className="create-user-clinic">
+            Se creará en <strong>{session.clinicName}</strong> — no se puede elegir otra clínica.
+          </p>
+        ) : null}
 
         {serverError ? <FormBanner tone="error">{serverError}</FormBanner> : null}
         {successEmail ? (

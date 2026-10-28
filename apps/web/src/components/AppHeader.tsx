@@ -4,7 +4,13 @@ import { ThemeToggle } from "./ThemeToggle";
 import "./AppHeader.css";
 
 export function AppHeader() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, session } = useAuth();
+  const role = session?.role ?? null;
+  // Mismas reglas que exige el backend (RequireAccess en cada controller):
+  // así nadie ve un link a algo que de todas formas le devolvería 403.
+  const canSeePatients = role === "CLINIC_ADMIN" || role === "CLINICIAN";
+  const canSeeAdminTools = role === "CLINIC_ADMIN";
+  const isGlobalAdmin = session?.context === "GLOBAL";
 
   return (
     <header className="app-header">
@@ -17,9 +23,10 @@ export function AppHeader() {
         <ThemeToggle />
         {isAuthenticated ? (
           <nav className="app-nav">
-            <Link to="/pacientes">Pacientes</Link>
-            <Link to="/profesionales">Profesionales</Link>
-            <Link to="/auditoria">Auditoría</Link>
+            {canSeePatients ? <Link to="/pacientes">Pacientes</Link> : null}
+            {canSeeAdminTools ? <Link to="/profesionales">Profesionales</Link> : null}
+            {canSeeAdminTools ? <Link to="/auditoria">Auditoría</Link> : null}
+            {isGlobalAdmin ? <Link to="/admin/crear-usuario">Crear usuario</Link> : null}
             <button type="button" className="link-button" onClick={logout}>
               Cerrar sesión
             </button>

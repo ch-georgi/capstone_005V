@@ -16,6 +16,7 @@ export class ClinicOptionDto {
   @ApiProperty({ format: 'uuid' }) clinicId!: string;
   @ApiProperty({ example: 'Clínica A' }) clinicName!: string;
   @ApiProperty({ enum: TenantRole, enumName: 'TenantRole' }) role!: TenantRole;
+  @ApiProperty({ example: 'Dra. Ana Soto', description: 'Nombre de presentación de la membresía en esta clínica.' }) displayName!: string;
 }
 
 export class VerifyClinicsResponseDto {

@@ -34,9 +34,12 @@ export function Login() {
     defaultValues: { email: "", password: "" },
   });
 
-  const finishLogin = async (credentials: CredentialsFormValues, clinicId?: string, clinicName?: string) => {
+  const finishLogin = async (credentials: CredentialsFormValues, clinic?: ClinicOption) => {
     try {
-      await login({ ...credentials, clinicId }, clinicName);
+      await login(
+        { ...credentials, clinicId: clinic?.clinicId },
+        clinic ? { clinicName: clinic.clinicName, displayName: clinic.displayName, role: clinic.role } : undefined,
+      );
       navigate("/");
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : "No se pudo iniciar sesión. Intenta nuevamente.");
@@ -54,7 +57,7 @@ export function Login() {
         return;
       }
       if (result.clinics.length === 1 && !result.isSystemAdmin) {
-        await finishLogin(values, result.clinics[0].clinicId, result.clinics[0].clinicName);
+        await finishLogin(values, result.clinics[0]);
         return;
       }
       if (result.clinics.length === 0 && result.isSystemAdmin) {
@@ -81,7 +84,7 @@ export function Login() {
       return;
     }
     const clinic = clinics.find((c) => c.clinicId === selected);
-    await finishLogin(pendingCredentials, selected, clinic?.clinicName);
+    await finishLogin(pendingCredentials, clinic);
   };
 
   return (
