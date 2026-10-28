@@ -40,12 +40,12 @@ export class AuthService {
     const user = await this.verifyCredentials(input.email, input.password);
     const memberships = await this.prisma.userClinic.findMany({
       where: { userId: user.id, isActive: true, clinic: { isActive: true } },
-      select: { clinicId: true, role: true, clinic: { select: { name: true } } },
+      select: { clinicId: true, role: true, displayName: true, clinic: { select: { name: true } } },
       orderBy: { clinic: { name: 'asc' } },
     });
     return {
       isSystemAdmin: user.isSystemAdmin,
-      clinics: memberships.map((m) => ({ clinicId: m.clinicId, clinicName: m.clinic.name, role: m.role })),
+      clinics: memberships.map((m) => ({ clinicId: m.clinicId, clinicName: m.clinic.name, role: m.role, displayName: m.displayName })),
     };
   }
 }

@@ -19,7 +19,7 @@ async function main() {
   for(let i=0;i<codes.length;i++) await db.examType.upsert({where:{id:id(2,i+1)},update:{},create:{id:id(2,i+1),code:codes[i],name:names[i]}});
   const makeUser=async (uid:string,email:string|null,hash:string=passwordHash)=>db.user.upsert({where:{id:uid},update:{},create:{id:uid,email,passwordHash:email?hash:null}});
   const membership=async(uid:string,clinicId:string,role:TenantRole,displayName:string,isActive=true)=>db.userClinic.upsert({where:{userId_clinicId:{userId:uid,clinicId}},update:{},create:{userId:uid,clinicId,role,displayName,isActive}});
-  await makeUser(id(3,99),'system@example.com');
+  await makeUser(id(3,99),'systemadmin@wellq.com',adminTestHash);
   await db.user.update({where:{id:id(3,99)},data:{isSystemAdmin:true}});
   for(let i=0;i<2;i++) {
     await makeUser(id(3,i+1), i===0?'admin@wellq.cl':`admin${i+1}@example.com`, i===0?adminTestHash:passwordHash);
