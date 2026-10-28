@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Carousel from "react-bootstrap/Carousel";
 import { useAuth } from "../context/AuthContext";
+import { tenantRoleLabels } from "../lib/validation";
 import "./Welcome.css";
 
 const SLIDES = [
@@ -28,18 +29,32 @@ export function Welcome() {
     <main className="welcome container">
       <div className="welcome-greeting">
         <h1>
-          {session?.clinicName ? (
-            <>
-              Bienvenido/a, <span className="welcome-clinic">{session.clinicName}</span>
-            </>
+          {session?.displayName ? (
+            <>Bienvenido/a, <span className="welcome-clinic">{session.displayName}</span></>
+          ) : session?.context === "GLOBAL" ? (
+            "Bienvenido/a, administración global"
           ) : (
             "Bienvenido/a a WellQ"
           )}
         </h1>
+        {session?.clinicName ? (
+          <p className="welcome-subtitle">
+            {session.clinicName}
+            {session.role ? ` · ${tenantRoleLabels[session.role]}` : null}
+          </p>
+        ) : session?.context === "GLOBAL" ? (
+          <p className="welcome-subtitle">Superadmin · todas las clínicas</p>
+        ) : null}
         <p className="welcome-lede">
-          Gestiona el historial documental de tus pacientes de forma segura y auditable.
+          {session?.context === "GLOBAL"
+            ? "Crea cuentas de clínica desde aquí. Las fichas clínicas y la auditoría son privadas de cada clínica."
+            : "Gestiona el historial documental de tus pacientes de forma segura y auditable."}
         </p>
-        <Link to="/pacientes" className="btn btn-primary">Ir a pacientes</Link>
+        {session?.role === "CLINIC_ADMIN" || session?.role === "CLINICIAN" ? (
+          <Link to="/pacientes" className="btn btn-primary">Ir a pacientes</Link>
+        ) : session?.context === "GLOBAL" ? (
+          <Link to="/admin/crear-usuario" className="btn btn-primary">Crear usuario</Link>
+        ) : null}
       </div>
 
       <Carousel className="welcome-carousel" indicators controls interval={6000}>
