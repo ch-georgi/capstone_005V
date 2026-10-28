@@ -54,7 +54,7 @@ describe('API creation and bootstrap against disposable PostgreSQL', () => {
     const input = body({ role });
     const response = await post('/api/v1/users', await login(admin, clinicA), { ...input, email: ` ${input.email.toUpperCase()} ` }).expect(201);
     expect(response.body).toMatchObject({ email: input.email, clinicId: clinicA, role, displayName: 'Profesional de prueba', isActive: true });
-    expect(Object.keys(response.body).sort()).toEqual(['id', 'email', 'clinicId', 'displayName', 'role', 'isActive', 'createdAt'].sort());
+    expect(Object.keys(response.body).sort()).toEqual(['id', 'email', 'clinicId', 'displayName', 'role', 'isActive', 'createdAt', 'gender'].sort());
     expect(new Date(response.body.createdAt).toISOString()).toBe(response.body.createdAt);
     const user = await db.user.findUniqueOrThrow({ where: { id: response.body.id }, include: { userClinics: true } });
     expect(user.isSystemAdmin).toBe(false);
