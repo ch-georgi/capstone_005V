@@ -47,6 +47,19 @@ export const createUserSchema = z.object({
 });
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
+export const staffRoles = ["CLINIC_ADMIN", "CLINICIAN"] as const;
+
+export const updateMemberSchema = z.object({
+  displayName: z
+    .string()
+    .trim()
+    .min(1, "El nombre para mostrar es obligatorio.")
+    .max(100, "El nombre es demasiado largo (máx. 100 caracteres)."),
+  role: z.enum(staffRoles, { message: "Selecciona un rol válido." }),
+  isActive: z.boolean(),
+});
+export type UpdateMemberFormValues = z.infer<typeof updateMemberSchema>;
+
 /**
  * Formulario de registro — vista preliminar 
  */

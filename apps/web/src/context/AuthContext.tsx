@@ -9,6 +9,7 @@ type Session = {
   context: SessionContext;
   clinicId: string | null;
   clinicName: string | null;
+  userId: string | null;
 };
 
 type AuthContextValue = {
@@ -26,7 +27,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
  * la página. Dura 15 min y hoy no hay refresh token (PB-018 pendiente), así
  * que ese trade-off es razonable para esta entrega.
  */
-function decodeJwtPayload(token: string): { context?: string; clinicId?: string; exp?: number } {
+function decodeJwtPayload(token: string): { sub?: string; context?: string; clinicId?: string; exp?: number } {
   try {
     const [, payload] = token.split(".");
     const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       context: claims.context === "GLOBAL" ? "GLOBAL" : "TENANT",
       clinicId: claims.clinicId ?? null,
       clinicName: clinicName ?? null,
+      userId: claims.sub ?? null,
     });
   }, []);
 

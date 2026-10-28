@@ -132,10 +132,17 @@ export const createPatient = (token: string, input: PatientInput & { userId: str
 export const updatePatient = (token: string, id: string, input: Partial<PatientInput>) =>
   apiRequest<Patient>(`/patients/${id}`, { method: "PATCH", body: input, token });
 
-// ---------- Miembros (cuentas PATIENT sin ficha) ----------
-export type Member = { id: string; email: string | null; displayName: string; role: TenantRole; isActive: boolean; patientId: string | null };
+// ---------- Miembros de la clínica (personal y cuentas de paciente) ----------
+export type Member = {
+  id: string; email: string | null; displayName: string; role: TenantRole; isActive: boolean;
+  hasCredentials: boolean; patientId: string | null; createdAt: string; updatedAt: string;
+};
 export const listMembers = (token: string, p: { role?: TenantRole; isActive?: boolean; q?: string; limit?: number; offset?: number }) =>
   apiRequest<Page<Member>>(`/users${qs({ ...p, isActive: p.isActive === undefined ? undefined : String(p.isActive) })}`, { token });
+export const getMember = (token: string, userId: string) => apiRequest<Member>(`/users/${userId}`, { token });
+export type UpdateMemberInput = { displayName?: string; role?: "CLINIC_ADMIN" | "CLINICIAN"; isActive?: boolean };
+export const updateMember = (token: string, userId: string, input: UpdateMemberInput) =>
+  apiRequest<Member>(`/users/${userId}`, { method: "PATCH", body: input, token });
 
 // ---------- Exámenes ----------
 export type ExamType = { id: string; code: string; name: string };
