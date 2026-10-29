@@ -82,3 +82,9 @@ La suite móvil usa PostgreSQL real y reemplaza solo el envío de correo por una
 `patientId` también está presente en login, selección/cambio de clínica y renovación. Se resuelve en servidor desde usuario y clínica autenticados; permite consultar la ficha histórica autorizada. Una ficha pendiente devuelve null. La app no consulta el listado administrativo de pacientes.
 
 `PATCH /api/v1/auth/me` acepta exclusivamente `{ "displayName": "Nombre" }`. Recorta extremos y exige 1–100 caracteres. Modifica solo la membresía de paciente de la clínica del JWT móvil, incluso con acceso clínico READ_ONLY. No cambia correo ni el nombre de la ficha. Registra una auditoría de campos modificados sin los valores anteriores/nuevos. Reutiliza el esquema existente; esta ampliación no requiere migración.
+
+## SMTP2GO por HTTPS en Railway
+
+Railway Free, Trial y Hobby no admiten SMTP saliente. Configurar `SMTP2GO_API_KEY` en el backend con una clave de Sending > API Keys autorizada para `/email/send`. No es la contraseña del usuario SMTP. Esta clave selecciona HTTPS y tiene prioridad sobre SMTP. Mantener `SMTP_FROM` con un remitente verificado y `PASSWORD_RESET_SECRET` independiente de al menos 32 bytes. Desplegar el backend con estas variables; no requiere recompilar Android.
+
+Referencia: https://developers.smtp2go.com/docs/send-an-email y https://docs.railway.com/networking/outbound-networking.
