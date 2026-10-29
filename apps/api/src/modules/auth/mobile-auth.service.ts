@@ -397,7 +397,7 @@ export class MobileAuthService {
     return createHmac("sha256", key).update(`${id}:${code}`).digest("hex");
   }
   async forgot(email: string, ip: string) {
-    if (!this.config.get("SMTP_HOST"))
+    if (!this.config.get("SMTP_HOST") && !this.config.get("SMTP2GO_API_KEY"))
       throw apiError(
         503,
         "RECOVERY_UNAVAILABLE",
