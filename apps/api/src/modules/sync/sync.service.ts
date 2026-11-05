@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma,SyncEntity } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TenantContext } from '../../common/types/auth-context';
+import { SessionClaims,TenantContext } from '../../common/types/auth-context';
 import { apiError } from '../../common/filters/api-error';
 import { ContextService } from '../auth/context.service';
 import { SyncQuery } from './sync.controller';
@@ -11,12 +11,12 @@ type Change={revision:string;entity:SyncEntity;entityId:string;patientId:string;
 @Injectable()
 export class SyncService {
  constructor(private readonly db:PrismaService,private readonly config:ConfigService,private readonly contexts:ContextService){}
- async get(context:TenantContext,query:SyncQuery){
+ async get(context:TenantContext,query:SyncQuery,session:SessionClaims){
   if(context.clinicId!==query.clinicId) throw apiError(403,'FORBIDDEN','La clínica no corresponde a la sesión.');
   const secret=this.config.get<string>('SYNC_CURSOR_SECRET');
   if(!secret) throw apiError(503,'SYNC_NOT_CONFIGURED','La sincronización no está configurada.');
   return this.db.$transaction(async tx=>{
-   const ctx=await this.contexts.resolve({sub:context.actorId,context:'TENANT',clinicId:context.clinicId},tx);
+   const ctx=await this.contexts.resolve(session,tx);
    if(ctx.kind!=='TENANT') throw apiError(403,'FORBIDDEN','Se requiere una clínica.');
    const member=await tx.userClinic.findUniqueOrThrow({where:{userId_clinicId:{userId:ctx.actorId,clinicId:ctx.clinicId}}});
    const clinic=await tx.clinic.findUniqueOrThrow({where:{id:ctx.clinicId}});
