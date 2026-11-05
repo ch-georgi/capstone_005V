@@ -1,10 +1,10 @@
-import { Controller,Get,Query } from '@nestjs/common';
+import { Controller,Get,Query,Req } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { IsInt,IsOptional,IsString,IsUUID,Max,MaxLength,Min } from 'class-validator';
 import { ApiBearerAuth,ApiOperation,ApiProperty,ApiPropertyOptional,ApiTags,ApiOkResponse,ApiResponse } from '@nestjs/swagger';
 import { TenantRole } from '@prisma/client';
 import { CurrentContext,RequireAccess } from '../../common/decorators/access';
-import { TenantContext } from '../../common/types/auth-context';
+import { AuthenticatedRequest,TenantContext } from '../../common/types/auth-context';
 import { SyncService } from './sync.service';
 export class SyncQuery {
  @ApiProperty({format:'uuid'}) @IsUUID() clinicId!:string;
@@ -20,5 +20,5 @@ export class SyncController {
  @ApiResponse({status:409,description:'SYNC_RESET_REQUIRED: discard cursor and request a new snapshot.'})
  @ApiResponse({status:503,description:'SYNC_NOT_CONFIGURED: server cursor secret is missing.'})
  @ApiOperation({summary:'Sincronizar metadatos autorizados: snapshot inicial o delta con cursor firmado.'})
- get(@CurrentContext() ctx:TenantContext,@Query() query:SyncQuery){return this.sync.get(ctx,query);}
+ get(@CurrentContext() ctx:TenantContext,@Query() query:SyncQuery,@Req() req:AuthenticatedRequest){return this.sync.get(ctx,query,req.session!);}
 }

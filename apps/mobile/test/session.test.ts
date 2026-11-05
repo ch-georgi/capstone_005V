@@ -240,3 +240,60 @@ it("waits for a rotating refresh before switching clinic", async () => {
   expect(state.request).toHaveBeenLastCalledWith("/auth/mobile/switch-clinic", { clinicId: "b" }, "rotated-access");
   expect(state.manager.getSnapshot().profile?.clinic.id).toBe("b");
 });
+it("renews a rejected access token during periodic revalidation", async () => {
+  const state = await loggedIn();
+  const renewed = makeSession();
+  renewed.accessToken = "access-renewed";
+  renewed.refreshToken = "refresh-renewed";
+  state.request
+    .mockRejectedValueOnce(new ApiError(401, "UNAUTHORIZED", "expired"))
+    .mockResolvedValueOnce(renewed)
+    .mockResolvedValueOnce(renewed.profile);
+  await state.manager.revalidate();
+  expect(state.manager.getSnapshot().status).toBe("authenticated");
+  expect(state.request).toHaveBeenLastCalledWith("/auth/me", undefined, "access-renewed");
+  expect([...state.data.values()][0]).toContain("refresh-renewed");
+});
+
+it("clears a session when revalidation confirms its refresh token is revoked", async () => {
+  const state = await loggedIn();
+  state.request
+    .mockRejectedValueOnce(new ApiError(401, "UNAUTHORIZED", "expired"))
+    .mockRejectedValueOnce(new ApiError(401, "UNAUTHORIZED", "revoked"));
+  await state.manager.revalidate();
+  expect(state.manager.getSnapshot().status).toBe("anonymous");
+  expect(state.data.size).toBe(0);
+});
+
+it.each([0, 408, 429, 500, 503])("preserves the session on periodic transient failures (%s)", async (status) => {
+  const state = await loggedIn();
+  state.request.mockRejectedValueOnce(new ApiError(status, "NETWORK_ERROR", "unavailable"));
+  await state.manager.revalidate();
+  expect(state.manager.getSnapshot()).toMatchObject({status: "authenticated", offline: true});
+  expect(state.data.size).toBe(1);
+});
+
+it("does not erase credentials after an unexpected revalidation error", async () => {
+  const state = await loggedIn();
+  state.request.mockRejectedValueOnce(new Error("invalid response"));
+  await state.manager.revalidate();
+  expect(state.manager.getSnapshot().status).toBe("authenticated");
+  expect(state.data.size).toBe(1);
+});
+
+it("does not replace a rotated refresh token with a late profile response", async () => {
+  const state = await loggedIn();
+  const profile = deferred<Session["profile"]>();
+  state.request.mockReturnValueOnce(profile.promise);
+  const validation = state.manager.revalidate();
+  await Promise.resolve();
+  const renewed = makeSession();
+  renewed.accessToken = "access-renewed";
+  renewed.refreshToken = "refresh-renewed";
+  state.request.mockResolvedValueOnce(renewed);
+  await state.manager.refresh();
+  profile.resolve(makeSession().profile);
+  await validation;
+  expect([...state.data.values()][0]).toContain("refresh-renewed");
+  expect(state.manager.getSnapshot().status).toBe("authenticated");
+});

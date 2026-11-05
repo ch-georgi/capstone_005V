@@ -222,14 +222,15 @@ export class SessionManager {
         await this.refresh();
         return;
       }
-      const profile = await this.api.request<Profile>(
-        "/auth/me",
-        undefined,
-        this.session.accessToken,
+      const session = this.session;
+      const profile = await this.authorized((token) =>
+        this.api.request<Profile>("/auth/me", undefined, token),
       );
+      // A concurrent refresh already supplied a current profile and rotated credentials.
+      if (generation !== this.generation || this.session !== session) return;
       await this.accept(
         {
-          ...this.session,
+          ...session,
           profile,
           expiresIn: Math.max(
             1,
@@ -257,12 +258,10 @@ export class SessionManager {
         });
       else if (
         error instanceof ApiError &&
-        error.status === 401 &&
-        this.session &&
-        this.expiresAt > Date.now() + 30000
+        [401, 403].includes(error.status)
       ) {
         await this.clear();
-      } else await this.clear();
+      }
     }
   }
   async switchClinic(clinicId: string) {
