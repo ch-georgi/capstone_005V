@@ -6,11 +6,28 @@
 .app-header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: 64px;
   gap: 16px;
   width: 100%;
   padding-inline: clamp(20px, 4vw, 48px);
+}
+
+.menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-s);
+  color: var(--text);
+  cursor: pointer;
+  flex: none;
+}
+
+.menu-trigger:hover {
+  background: var(--surface-sunken);
 }
 
 .brand {
@@ -42,35 +59,8 @@
   font-size: 16px;
 }
 
-.app-nav {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.app-nav a {
-  text-decoration: none;
-  color: var(--text);
-}
-
-.app-nav a:hover {
-  color: var(--teal);
-}
-
-.app-nav .link-button:hover {
-  color: var(--red);
-}
-
 @media (max-width: 420px) {
   .brand-name {
     display: none;
   }
-}
-
-.app-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
 }

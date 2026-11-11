@@ -51,9 +51,9 @@ describe('UserMembersService.list/get', () => {
 
   it('applies role, status and text filters', async () => {
     const { prisma, service } = setup();
-    await service.list(ctx, { limit: 50, offset: 0, role: 'PATIENT' as any, isActive: false, q: 'ana' });
+    await service.list(ctx, { limit: 50, offset: 0, role: ['PATIENT'], isActive: false, q: 'ana' });
     const where = prisma.userClinic.findMany.mock.calls[0][0].where;
-    expect(where).toMatchObject({ clinicId: 'clinic', role: 'PATIENT', isActive: false });
+    expect(where).toMatchObject({ clinicId: 'clinic', role: { in: ['PATIENT'] }, isActive: false });
     expect(where.OR).toEqual([
       { displayName: { contains: 'ana', mode: 'insensitive' } },
       { user: { email: { contains: 'ana', mode: 'insensitive' } } },

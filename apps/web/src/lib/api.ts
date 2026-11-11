@@ -124,9 +124,13 @@ export type PatientInput = {
   email?: string | null; phone?: string | null; medicalRecordNumber?: string | null;
 };
 
-const qs = (params: Record<string, string | number | undefined>) => {
+const qs = (params: Record<string, string | number | undefined | (string | number)[]>) => {
   const q = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "") q.set(k, String(v));
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined) continue;
+    if (Array.isArray(v)) { for (const item of v) if (item !== "") q.append(k, String(item)); }
+    else if (v !== "") q.set(k, String(v));
+  }
   const text = q.toString();
   return text ? `?${text}` : "";
 };
@@ -144,7 +148,7 @@ export type Member = {
   id: string; email: string | null; displayName: string; gender: Gender; role: TenantRole; isActive: boolean;
   hasCredentials: boolean; patientId: string | null; createdAt: string; updatedAt: string;
 };
-export const listMembers = (token: string, p: { role?: TenantRole; isActive?: boolean; q?: string; limit?: number; offset?: number }) =>
+export const listMembers = (token: string, p: { role?: TenantRole | TenantRole[]; isActive?: boolean; q?: string; limit?: number; offset?: number }) =>
   apiRequest<Page<Member>>(`/users${qs({ ...p, isActive: p.isActive === undefined ? undefined : String(p.isActive) })}`, { token });
 export const getMember = (token: string, userId: string) => apiRequest<Member>(`/users/${userId}`, { token });
 export type UpdateMemberInput = { displayName?: string; gender?: Gender; role?: "CLINIC_ADMIN" | "CLINICIAN"; isActive?: boolean };
