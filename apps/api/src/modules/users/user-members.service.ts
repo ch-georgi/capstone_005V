@@ -33,7 +33,7 @@ export class UserMembersService {
   async list(ctx: TenantContext, query: ListMembersQueryDto): Promise<MemberPageDto> {
     const where: Prisma.UserClinicWhereInput = {
       clinicId: ctx.clinicId,
-      ...(query.role && { role: query.role }),
+      ...(query.role?.length && { role: { in: query.role } }),
       ...(query.isActive !== undefined && { isActive: query.isActive }),
       ...(query.q && { OR: [
         { displayName: { contains: query.q, mode: 'insensitive' } },

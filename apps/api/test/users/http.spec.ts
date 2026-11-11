@@ -37,7 +37,7 @@ describe('HTTP layer of clinic member management (sin base de datos)', () => {
     await http().get('/api/v1/users').expect(200);
     expect(members.calls[0][2]).toMatchObject({ limit: 50, offset: 0 });
     await http().get('/api/v1/users?limit=5&offset=10&role=PATIENT&isActive=false&q=%20ana%20').expect(200);
-    expect(members.calls[1][2]).toMatchObject({ limit: 5, offset: 10, role: 'PATIENT', isActive: false, q: 'ana' });
+    expect(members.calls[1][2]).toMatchObject({ limit: 5, offset: 10, role: ['PATIENT'], isActive: false, q: 'ana' });
   });
 
   it.each(['limit=0', 'limit=101', 'offset=-1', 'role=ROOT', 'isActive=maybe', 'q=', 'foo=1'])('rejects list query %s with 400', async (qs) => {

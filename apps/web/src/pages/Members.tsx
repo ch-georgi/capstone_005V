@@ -13,6 +13,8 @@ const ROLE_BADGE: Record<TenantRole, string> = {
   CLINICIAN: "audit-create",
   PATIENT: "audit-view",
 };
+// Esta pantalla es solo para personal clínico; las cuentas de pacientes se gestionan en Pacientes.
+const STAFF_ROLES: TenantRole[] = ["CLINIC_ADMIN", "CLINICIAN"];
 
 export function Members() {
   const { session } = useAuth();
@@ -39,7 +41,7 @@ export function Members() {
     setLoading(true);
     listMembers(token, {
       q: term || undefined,
-      role: role || undefined,
+      role: role || STAFF_ROLES,
       isActive: active === "" ? undefined : active === "true",
       limit: PAGE_SIZE,
       offset,
@@ -73,7 +75,6 @@ export function Members() {
               <option value="">Todos</option>
               <option value="CLINIC_ADMIN">{tenantRoleLabels.CLINIC_ADMIN}</option>
               <option value="CLINICIAN">{tenantRoleLabels.CLINICIAN}</option>
-              <option value="PATIENT">{tenantRoleLabels.PATIENT}</option>
             </select>
           </label>
           <label>

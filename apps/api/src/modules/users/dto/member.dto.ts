@@ -1,10 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Gender, TenantRole } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsString, Length, Matches, Max, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsString, Length, Matches, Max, Min } from 'class-validator';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value);
+const toArray = ({ value }: { value: unknown }) => (value === undefined ? value : Array.isArray(value) ? value : [value]);
 
 export class ListMembersQueryDto {
   @ApiPropertyOptional({ minimum: 1, maximum: 100, default: 50 })
@@ -13,8 +14,8 @@ export class ListMembersQueryDto {
   @ApiPropertyOptional({ minimum: 0, default: 0 })
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) offset: number = 0;
 
-  @ApiPropertyOptional({ enum: TenantRole, enumName: 'TenantRole' })
-  @IsOptional() @IsIn(Object.values(TenantRole)) role?: TenantRole;
+  @ApiPropertyOptional({ enum: TenantRole, enumName: 'TenantRole', isArray: true, description: 'Repetir el parámetro para filtrar por más de un rol (ej. ?role=CLINIC_ADMIN&role=CLINICIAN).' })
+  @IsOptional() @Transform(toArray) @IsArray() @IsIn(Object.values(TenantRole), { each: true }) role?: TenantRole[];
 
   @ApiPropertyOptional({ description: 'true: solo activos; false: solo inactivos.' })
   @IsOptional() @Transform(toBoolean) @IsBoolean() isActive?: boolean;
