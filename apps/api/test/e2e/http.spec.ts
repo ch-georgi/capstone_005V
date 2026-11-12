@@ -152,7 +152,7 @@ describe('HTTP guards, DTOs and OpenAPI (database mocked)', () => {
     expect(document.paths['/api/v1/clinics/{clinicId}/users'].post.responses['404']).toBeDefined();
     const schema = document.components.schemas.CreateUserDto;
     expect(schema.required.sort()).toEqual(['displayName', 'email', 'password', 'role']);
-    expect(schema.properties.password).toMatchObject({ writeOnly: true, minLength: 12, maxLength: 128 });
+    expect(schema.properties.password).toMatchObject({ writeOnly: true, minLength: 9, maxLength: 128 });
     expect(document.components.schemas.TenantRole.enum.sort()).toEqual(Object.values(TenantRole).sort());
     expect(document.components.schemas.CreatedUserDto.properties.password).toBeUndefined();
     expect(JSON.stringify(document)).not.toContain('passwordHash');

@@ -103,7 +103,7 @@ export function CreateUser() {
             type="password"
             autoComplete="new-password"
             maxLength={128}
-            hint="Mínimo 12 caracteres. La persona podrá cambiarla luego de ingresar."
+            hint="Mínimo 9 caracteres. La persona podrá cambiarla luego de ingresar."
             error={errors.password?.message}
             {...register("password")}
           />
