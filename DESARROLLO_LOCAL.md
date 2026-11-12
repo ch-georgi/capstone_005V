@@ -358,3 +358,53 @@ multipart de JPG/PDF/PNG con Expo 57 e incorpora calendario Android para selecci
 fechas. Instalar sobre la version anterior para conservar operaciones pendientes;
 no borrar los datos de la app. Esta correccion es movil y usa la API ya desplegada.
 Ver apps/mobile/evidence/v031/README.md.
+
+## Personalizar y probar el correo de recuperación
+
+El correo se genera en la API para todos los clientes, incluido Android. Editar
+`apps/api/src/modules/auth/templates/password-recovery.template.ts` para cambiar
+asunto, textos, colores y HTML. El flujo utiliza un código de seis dígitos que
+vence en 10 minutos; conservar esas instrucciones al editar el diseño.
+El logo se adjunta mediante CID en SMTP y mediante `inlines` en SMTP2GO HTTPS,
+según el [contrato del proveedor](https://smtp2go.github.io/smtp2go.apidocs/).
+No necesita una URL pública de imagen. Se conserva una alternativa de texto plano.
+
+Desde la raíz del repositorio, generar una vista previa sin enviar correos:
+
+```powershell
+npm.cmd run mail:preview --prefix apps/api
+Start-Process apps/api/.cache/password-recovery.html
+```
+
+Pruebas unitarias sin red, credenciales ni base de datos:
+
+```powershell
+npm.cmd run test:mail --prefix apps/api
+```
+
+Para enviar un correo real al destinatario que elijas, usando `apps/api/.env`:
+
+```powershell
+npm.cmd run mail:test --prefix apps/api -- --to tu-correo@ejemplo.com
+```
+
+Este comando llama al mismo `MailService` de la recuperación. Usa el código fijo
+`123456` solo como demostración: no crea desafíos ni modifica cuentas y el código
+no permite cambiar contraseñas. No necesita la API, PostgreSQL ni Android en marcha.
+El proveedor debe estar configurado con `SMTP2GO_API_KEY` (tiene prioridad), o
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER` y `SMTP_PASSWORD` cuando se
+requiera autenticación; ambos métodos usan `SMTP_FROM` como remitente verificado.
+Las variables ya exportadas en la terminal tienen prioridad sobre el `.env`.
+Una respuesta exitosa confirma aceptación del proveedor; revisa también spam.
+
+El logo está incorporado en `apps/api/src/modules/auth/templates/wellq-logo.ts`
+para que el build de la API sea independiente de los archivos móviles. Para
+actualizarlo desde el logo existente, ejecutar desde la raíz:
+
+```powershell
+$logoBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $PWD 'apps/mobile/assets/wellq-logo.png')))
+"export const wellqLogoBase64 = '$logoBase64';" | Set-Content -Encoding utf8 apps/api/src/modules/auth/templates/wellq-logo.ts
+```
+
+Reinicia la API local para aplicar cambios. Para que se reflejen en el APK que
+apunta a Railway, despliega la API actualizada; no hace falta recompilar Android.

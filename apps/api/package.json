@@ -21,6 +21,9 @@
     "start": "node dist/main.js",
     "test:integration": "jest --config jest.integration.config.cjs --runInBand",
     "test": "jest --runInBand",
+    "test:mail": "jest --runInBand test/mail.service.spec.ts test/password-recovery.template.spec.ts",
+    "mail:preview": "ts-node scripts/test-recovery-email.ts --preview",
+    "mail:test": "ts-node scripts/test-recovery-email.ts",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "bootstrap:admin": "ts-node scripts/bootstrap-admin.ts",
     "build": "tsc -p tsconfig.build.json"
