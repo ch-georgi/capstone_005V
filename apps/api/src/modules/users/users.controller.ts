@@ -7,7 +7,7 @@ import { ApiErrorDto } from '../../common/filters/api-error';
 import { requestInfo } from '../../common/http/request-info';
 import { GlobalAdminContext, TenantContext } from '../../common/types/auth-context';
 import { CreatedUserDto, CreateUserDto } from './dto/create-user.dto';
-import { ListMembersQueryDto, MemberDto, MemberPageDto, UpdateMemberDto } from './dto/member.dto';
+import { GlobalMemberPageDto, ListGlobalMembersQueryDto, ListMembersQueryDto, MemberDto, MemberPageDto, UpdateMemberDto } from './dto/member.dto';
 import { UserMembersService } from './user-members.service';
 import { UsersService } from './users.service';
 
@@ -35,6 +35,15 @@ export class UsersController {
   createAsGlobal(@CurrentContext() context: GlobalAdminContext,
     @Param('clinicId', new ParseUUIDPipe()) clinicId: string, @Body() input: CreateUserDto) {
     return this.users.create(context, input, clinicId);
+  }
+
+  @Get('clinics/users')
+  @RequireAccess({ global: true })
+  @ApiOperation({ operationId: 'listAllClinicMembers', summary: 'Listar los usuarios de todas las clínicas (solo superadmin)',
+    description: 'Requiere JWT GLOBAL. Paginado, con filtros por clínica, rol, estado y búsqueda por nombre o correo. Cada fila indica a qué clínica pertenece.' })
+  @ApiResponse({ status: 200, type: GlobalMemberPageDto })
+  listGlobal(@Query() query: ListGlobalMembersQueryDto) {
+    return this.members.listGlobal(query);
   }
 
   @Get('users')

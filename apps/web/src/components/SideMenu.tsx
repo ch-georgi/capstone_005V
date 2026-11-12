@@ -45,6 +45,7 @@ export function SideMenu({ isOpen, onClose }: Props) {
           {canSeePatients ? <Link to="/pacientes">Pacientes</Link> : null}
           {canSeeAdminTools ? <Link to="/profesionales">Profesionales</Link> : null}
           {canSeeAdminTools ? <Link to="/auditoria">Auditoría</Link> : null}
+          {isGlobalAdmin ? <Link to="/admin/usuarios">Usuarios</Link> : null}
           {isGlobalAdmin ? <Link to="/admin/crear-usuario">Crear usuario</Link> : null}
           {isGlobalAdmin ? <Link to="/admin/crear-clinica">Crear clínica</Link> : null}
         </nav>

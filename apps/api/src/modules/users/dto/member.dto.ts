@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Gender, TenantRole } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsString, Length, Matches, Max, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max, Min } from 'class-validator';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value);
@@ -39,6 +39,23 @@ export class MemberDto {
 
 export class MemberPageDto {
   @ApiProperty({ type: [MemberDto] }) items!: MemberDto[];
+  @ApiProperty({ example: 12, description: 'Total que cumple los filtros (sin paginar).' }) total!: number;
+  @ApiProperty({ example: 50 }) limit!: number;
+  @ApiProperty({ example: 0 }) offset!: number;
+}
+
+export class ListGlobalMembersQueryDto extends ListMembersQueryDto {
+  @ApiPropertyOptional({ format: 'uuid', description: 'Filtra por una clínica específica. Si se omite, lista de todas las clínicas.' })
+  @IsOptional() @IsUUID() clinicId?: string;
+}
+
+export class GlobalMemberDto extends MemberDto {
+  @ApiProperty({ format: 'uuid' }) clinicId!: string;
+  @ApiProperty({ example: 'Clínica Vitalis' }) clinicName!: string;
+}
+
+export class GlobalMemberPageDto {
+  @ApiProperty({ type: [GlobalMemberDto] }) items!: GlobalMemberDto[];
   @ApiProperty({ example: 12, description: 'Total que cumple los filtros (sin paginar).' }) total!: number;
   @ApiProperty({ example: 50 }) limit!: number;
   @ApiProperty({ example: 0 }) offset!: number;
