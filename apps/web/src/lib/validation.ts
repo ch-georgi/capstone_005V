@@ -64,6 +64,14 @@ export const createClinicSchema = z.object({
 });
 export type CreateClinicFormValues = z.infer<typeof createClinicSchema>;
 
+export const setPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(9, "La contraseña debe tener al menos 9 caracteres.")
+    .max(128, "La contraseña es demasiado larga."),
+});
+export type SetPasswordFormValues = z.infer<typeof setPasswordSchema>;
+
 export const staffRoles = ["CLINIC_ADMIN", "CLINICIAN"] as const;
 
 export const updateMemberSchema = z.object({

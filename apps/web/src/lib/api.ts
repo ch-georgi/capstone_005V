@@ -162,6 +162,8 @@ export type GlobalMember = Member & { clinicId: string; clinicName: string };
 export const listGlobalMembers = (token: string, p: {
   clinicId?: string; role?: TenantRole | TenantRole[]; isActive?: boolean; q?: string; limit?: number; offset?: number;
 }) => apiRequest<Page<GlobalMember>>(`/clinics/users${qs({ ...p, isActive: p.isActive === undefined ? undefined : String(p.isActive) })}`, { token });
+export const setUserPassword = (token: string, userId: string, password: string) =>
+  apiRequest<{ ok: true }>(`/clinics/users/${userId}/password`, { method: "PATCH", body: { password }, token });
 
 // ---------- Exámenes ----------
 export type ExamType = { id: string; code: string; name: string };
