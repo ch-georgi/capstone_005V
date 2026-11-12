@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { SideMenu } from "./SideMenu";
@@ -7,6 +7,12 @@ import "./AppHeader.css";
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Cerrar sesión se hace desde dentro del menú: sin esto, al volver a
+  // iniciar sesión el menú reaparecería abierto (quedó así la última vez).
+  useEffect(() => {
+    if (!isAuthenticated) setMenuOpen(false);
+  }, [isAuthenticated]);
 
   return (
     <header className="app-header">
