@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "../components/ui/Card";
 import { FormBanner } from "../components/ui/FormBanner";
-import { listGlobalMembers, listClinics, type Clinic, type GlobalMember, type TenantRole } from "../lib/api";
-import { tenantRoleLabels, tenantRoles } from "../lib/validation";
+import { TextField } from "../components/ui/TextField";
+import { Button } from "../components/ui/Button";
+import { PasswordStrengthMeter } from "../components/ui/PasswordStrength";
+import { listGlobalMembers, listClinics, setUserPassword, ApiError, type Clinic, type GlobalMember, type TenantRole } from "../lib/api";
+import { tenantRoleLabels, tenantRoles, setPasswordSchema, type SetPasswordFormValues } from "../lib/validation";
 import { useAuth } from "../context/AuthContext";
 import "./Clinical.css";
 
@@ -12,6 +17,59 @@ const ROLE_BADGE: Record<TenantRole, string> = {
   CLINICIAN: "audit-create",
   PATIENT: "audit-view",
 };
+
+function PasswordResetRow({ member, token, colSpan, onDone }: {
+  member: GlobalMember; token: string; colSpan: number; onDone: () => void;
+}) {
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const {
+    register, handleSubmit, watch,
+    formState: { errors, isSubmitting },
+  } = useForm<SetPasswordFormValues>({ resolver: zodResolver(setPasswordSchema), defaultValues: { password: "" } });
+  const password = watch("password");
+
+  const onSubmit = async (values: SetPasswordFormValues) => {
+    setServerError(null);
+    try {
+      await setUserPassword(token, member.id, values.password);
+      setSuccess(true);
+    } catch (err) {
+      setServerError(err instanceof ApiError ? err.message : "No se pudo cambiar la contraseña.");
+    }
+  };
+
+  return (
+    <tr className="password-reset-row">
+      <td colSpan={colSpan}>
+        {success ? (
+          <FormBanner tone="success">
+            Contraseña de {member.displayName} actualizada. Sus sesiones activas quedaron cerradas.{" "}
+            <button type="button" className="link-button" onClick={onDone}>Cerrar</button>
+          </FormBanner>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="password-reset-form">
+            {serverError ? <FormBanner tone="error">{serverError}</FormBanner> : null}
+            <TextField
+              label={`Nueva contraseña para ${member.displayName}`}
+              type="password"
+              autoComplete="new-password"
+              maxLength={128}
+              hint="Mínimo 9 caracteres. Cerrará las sesiones activas de esta cuenta."
+              error={errors.password?.message}
+              {...register("password")}
+            />
+            <PasswordStrengthMeter value={password} />
+            <div className="password-reset-actions">
+              <Button type="submit" loading={isSubmitting}>Guardar</Button>
+              <button type="button" className="btn btn-ghost" onClick={onDone}>Cancelar</button>
+            </div>
+          </form>
+        )}
+      </td>
+    </tr>
+  );
+}
 
 export function GlobalMembers() {
   const { session } = useAuth();
@@ -27,6 +85,7 @@ export function GlobalMembers() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -59,6 +118,7 @@ export function GlobalMembers() {
 
   const from = total === 0 ? 0 : offset + 1;
   const to = Math.min(offset + PAGE_SIZE, total);
+  const columns = 7;
 
   return (
     <main className="container clinical">
@@ -100,21 +160,31 @@ export function GlobalMembers() {
         <div className="table-wrap">
           <table className="data-table">
             <thead>
-              <tr><th>Nombre</th><th>Correo</th><th>Clínica</th><th>Rol</th><th>Cuenta</th><th>Estado</th></tr>
+              <tr><th>Nombre</th><th>Correo</th><th>Clínica</th><th>Rol</th><th>Cuenta</th><th>Estado</th><th></th></tr>
             </thead>
             <tbody>
               {items.map((m) => (
-                <tr key={`${m.clinicId}-${m.id}`}>
-                  <td>{m.displayName}</td>
-                  <td>{m.email ?? "—"}</td>
-                  <td>{m.clinicName}</td>
-                  <td><span className={`audit-badge ${ROLE_BADGE[m.role]}`}>{tenantRoleLabels[m.role]}</span></td>
-                  <td>{m.hasCredentials ? "Activada" : "Pendiente"}</td>
-                  <td>{m.isActive ? "Activo" : "Inactivo"}</td>
-                </tr>
+                <Fragment key={`${m.clinicId}-${m.id}`}>
+                  <tr>
+                    <td>{m.displayName}</td>
+                    <td>{m.email ?? "—"}</td>
+                    <td>{m.clinicName}</td>
+                    <td><span className={`audit-badge ${ROLE_BADGE[m.role]}`}>{tenantRoleLabels[m.role]}</span></td>
+                    <td>{m.hasCredentials ? "Activada" : "Pendiente"}</td>
+                    <td>{m.isActive ? "Activo" : "Inactivo"}</td>
+                    <td>
+                      <button type="button" className="link-button" onClick={() => setEditingId(editingId === m.id ? null : m.id)}>
+                        {editingId === m.id ? "Cerrar" : "Cambiar contraseña"}
+                      </button>
+                    </td>
+                  </tr>
+                  {editingId === m.id ? (
+                    <PasswordResetRow member={m} token={token} colSpan={columns} onDone={() => setEditingId(null)} />
+                  ) : null}
+                </Fragment>
               ))}
               {!loading && items.length === 0 ? (
-                <tr><td colSpan={6} className="empty">No se encontraron personas.</td></tr>
+                <tr><td colSpan={columns} className="empty">No se encontraron personas.</td></tr>
               ) : null}
             </tbody>
           </table>

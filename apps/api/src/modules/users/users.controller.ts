@@ -8,6 +8,7 @@ import { requestInfo } from '../../common/http/request-info';
 import { GlobalAdminContext, TenantContext } from '../../common/types/auth-context';
 import { CreatedUserDto, CreateUserDto } from './dto/create-user.dto';
 import { GlobalMemberPageDto, ListGlobalMembersQueryDto, ListMembersQueryDto, MemberDto, MemberPageDto, UpdateMemberDto } from './dto/member.dto';
+import { SetPasswordDto } from './dto/set-password.dto';
 import { UserMembersService } from './user-members.service';
 import { UsersService } from './users.service';
 
@@ -44,6 +45,18 @@ export class UsersController {
   @ApiResponse({ status: 200, type: GlobalMemberPageDto })
   listGlobal(@Query() query: ListGlobalMembersQueryDto) {
     return this.members.listGlobal(query);
+  }
+
+  @Patch('clinics/users/:userId/password')
+  @RequireAccess({ global: true })
+  @ApiOperation({ operationId: 'setUserPasswordAsGlobal', summary: 'Cambiar la contraseña de cualquier usuario (solo superadmin)',
+    description: 'Requiere JWT GLOBAL. Revoca las sesiones y refresh tokens activos de la cuenta; la persona deberá iniciar sesión de nuevo con la nueva contraseña.' })
+  @ApiParam({ name: 'userId', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Contraseña actualizada.' })
+  @ApiResponse({ status: 404, type: ApiErrorDto, description: 'USER_NOT_FOUND: el usuario no existe.' })
+  async setPassword(@Param('userId', new ParseUUIDPipe({ version: '4' })) userId: string, @Body() input: SetPasswordDto) {
+    await this.users.setPasswordAsGlobal(userId, input.password);
+    return { ok: true };
   }
 
   @Get('users')

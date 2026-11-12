@@ -56,4 +56,16 @@ export class UsersService {
       throw error;
     }
   }
+
+  /** Reinicio administrativo de contraseña (solo superadmin). Invalida toda sesión activa de la cuenta. */
+  async setPasswordAsGlobal(userId: string, password: string): Promise<void> {
+    const passwordHash = await this.passwords.hash(password);
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({ where: { id: userId }, select: { id: true } });
+      if (!user) throw apiError(404, 'USER_NOT_FOUND', 'El usuario no existe.');
+      await tx.user.update({ where: { id: userId }, data: { passwordHash, credentialsVersion: { increment: 1 } } });
+      await tx.authSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+      await tx.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+    });
+  }
 }

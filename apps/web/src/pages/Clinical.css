@@ -53,3 +53,8 @@
 .audit-download { color: var(--purple); background: color-mix(in srgb, var(--purple) 14%, var(--surface)); }
 .audit-update { color: var(--orange); background: color-mix(in srgb, var(--orange) 14%, var(--surface)); }
 .audit-delete, .audit-purge { color: var(--red); background: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.password-reset-row td { background: var(--surface-sunken); }
+.password-reset-form { max-width: 420px; display: flex; flex-direction: column; }
+.password-reset-form .field { margin-bottom: 12px; }
+.password-reset-actions { display: flex; gap: 8px; }
+.password-reset-actions .btn { width: auto; }
