@@ -109,6 +109,8 @@ export function createUser(input: CreateUserRequest, token: string) {
 // ---------- Superadmin global ----------
 export type Clinic = { id: string; name: string; code: string };
 export const listClinics = (token: string) => apiRequest<{ items: Clinic[] }>("/clinics", { token });
+export const createClinic = (input: { name: string }, token: string) =>
+  apiRequest<Clinic>("/clinics", { method: "POST", body: input, token });
 export const createUserInClinic = (input: CreateUserRequest, clinicId: string, token: string) =>
   apiRequest<CreatedUser>(`/clinics/${clinicId}/users`, { method: "POST", body: input, token });
 
