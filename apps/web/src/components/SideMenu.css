@@ -77,44 +77,81 @@
 
 .side-menu-identity {
   margin: 16px;
-  padding: 14px 16px;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-m);
-  background: var(--surface-sunken);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 10%, var(--surface-sunken)), var(--surface-sunken));
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   flex: none;
 }
 
-.side-menu-identity-name {
-  margin: 0 0 10px;
+.side-menu-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  color: var(--teal-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-display);
-  font-weight: 650;
-  font-size: 15px;
+  font-weight: 750;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  flex: none;
 }
 
-.side-menu-identity-meta {
-  margin: 0;
+.side-menu-identity-body {
+  min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.side-menu-identity-greeting {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.side-menu-identity-name {
+  margin: 1px 0 0;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 15.5px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.side-menu-identity-tags {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
 }
 
-.side-menu-identity-meta div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 13px;
+.side-menu-tag {
+  display: inline-flex;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.side-menu-identity-meta dt {
+.side-menu-tag-orange { color: var(--orange); background: color-mix(in srgb, var(--orange) 16%, var(--surface)); }
+.side-menu-tag-green { color: var(--green); background: color-mix(in srgb, var(--green) 16%, var(--surface)); }
+.side-menu-tag-blue { color: var(--blue); background: color-mix(in srgb, var(--blue) 16%, var(--surface)); }
+.side-menu-tag-purple { color: var(--purple); background: color-mix(in srgb, var(--purple) 16%, var(--surface)); }
+
+.side-menu-identity-clinic {
+  font-size: 12px;
   color: var(--text-muted);
   font-weight: 600;
-}
-
-.side-menu-identity-meta dd {
-  margin: 0;
-  font-weight: 600;
-  color: var(--teal);
-  text-align: right;
 }
 
 .side-menu-nav {
