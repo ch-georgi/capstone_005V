@@ -55,6 +55,15 @@ export const createUserSchema = z.object({
 });
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
+export const createClinicSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "El nombre de la clínica es obligatorio.")
+    .max(100, "El nombre es demasiado largo (máx. 100 caracteres)."),
+});
+export type CreateClinicFormValues = z.infer<typeof createClinicSchema>;
+
 export const staffRoles = ["CLINIC_ADMIN", "CLINICIAN"] as const;
 
 export const updateMemberSchema = z.object({

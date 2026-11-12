@@ -12,6 +12,7 @@ import { Audit } from "./pages/Audit";
 import { Members } from "./pages/Members";
 import { MemberDetail } from "./pages/MemberDetail";
 import { SystemAdminCreateUser } from "./pages/SystemAdminCreateUser";
+import { CreateClinic } from "./pages/CreateClinic";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/profesionales" element={<ProtectedRoute><Members /></ProtectedRoute>} />
         <Route path="/profesionales/:userId" element={<ProtectedRoute><MemberDetail /></ProtectedRoute>} />
         <Route path="/admin/crear-usuario" element={<ProtectedRoute><SystemAdminCreateUser /></ProtectedRoute>} />
+        <Route path="/admin/crear-clinica" element={<ProtectedRoute><CreateClinic /></ProtectedRoute>} />
       </Routes>
     </>
   );
