@@ -22,13 +22,11 @@ export function SideMenu({ isOpen, onClose }: Props) {
   const isGlobalAdmin = session?.context === "GLOBAL";
 
   const welcome = welcomeWord(session?.gender);
-  const greeting = session?.displayName
-    ? `${welcome}, ${session.displayName}`
-    : isGlobalAdmin
-      ? `${welcome}, administración global`
-      : `${welcome} a WellQ`;
+  const name = session?.displayName ?? (isGlobalAdmin ? "Administración global" : "WellQ");
   const profileLabel = isGlobalAdmin ? "Superadmin" : role ? tenantRoleLabels[role] : "—";
   const clinicLabel = session?.clinicName ?? (isGlobalAdmin ? "Todas las clínicas" : "—");
+  const roleAccent = isGlobalAdmin ? "purple" : role === "CLINIC_ADMIN" ? "orange" : role === "CLINICIAN" ? "green" : "blue";
+  const initials = name.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "Q";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -53,11 +51,15 @@ export function SideMenu({ isOpen, onClose }: Props) {
         </div>
 
         <div className="side-menu-identity">
-          <p className="side-menu-identity-name">{greeting}</p>
-          <dl className="side-menu-identity-meta">
-            <div><dt>Perfil</dt><dd>{profileLabel}</dd></div>
-            <div><dt>Clínica</dt><dd>{clinicLabel}</dd></div>
-          </dl>
+          <div className="side-menu-avatar" aria-hidden="true">{initials}</div>
+          <div className="side-menu-identity-body">
+            <span className="side-menu-identity-greeting">{welcome}</span>
+            <p className="side-menu-identity-name">{name}</p>
+            <div className="side-menu-identity-tags">
+              <span className={`side-menu-tag side-menu-tag-${roleAccent}`}>{profileLabel}</span>
+              <span className="side-menu-identity-clinic">{clinicLabel}</span>
+            </div>
+          </div>
         </div>
 
         <nav className="side-menu-nav" onClick={onClose}>
