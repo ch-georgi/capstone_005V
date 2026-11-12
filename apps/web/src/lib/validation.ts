@@ -43,7 +43,7 @@ export const createUserSchema = z.object({
   email,
   password: z
     .string()
-    .min(12, "La contraseña debe tener al menos 12 caracteres.")
+    .min(9, "La contraseña debe tener al menos 9 caracteres.")
     .max(128, "La contraseña es demasiado larga."),
   displayName: z
     .string()
@@ -97,7 +97,7 @@ export const registerSchema = z
     email,
     password: z
       .string()
-      .min(12, "La contraseña debe tener al menos 12 caracteres.")
+      .min(9, "La contraseña debe tener al menos 9 caracteres.")
       .max(128, "La contraseña es demasiado larga."),
     confirmPassword: z.string().min(1, "Confirma tu contraseña."),
   })
@@ -107,10 +107,10 @@ export const registerSchema = z
   });
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
-/** Indicador de fuerza no bloqueante (la API solo exige largo >= 12). */
+/** Indicador de fuerza no bloqueante (la API solo exige largo >= 9). */
 export function passwordStrength(value: string): { score: 0 | 1 | 2 | 3; label: string } {
   let score = 0;
-  if (value.length >= 12) score++;
+  if (value.length >= 9) score++;
   if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
   if (/\d/.test(value) && /[^A-Za-z0-9]/.test(value)) score++;
   const labels = ["Débil", "Aceptable", "Buena", "Fuerte"];

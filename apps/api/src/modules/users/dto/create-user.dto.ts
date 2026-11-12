@@ -8,8 +8,8 @@ export class CreateUserDto {
   @Transform(({ value }: { value: unknown }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
   @IsEmail() @MaxLength(254) email!: string;
 
-  @ApiProperty({ format: 'password', writeOnly: true, minLength: 12, maxLength: 128 })
-  @IsString() @MinLength(12) @MaxLength(128) password!: string;
+  @ApiProperty({ format: 'password', writeOnly: true, minLength: 9, maxLength: 128 })
+  @IsString() @MinLength(9) @MaxLength(128) password!: string;
 
   @ApiProperty({ example: 'Profesional de prueba', minLength: 1, maxLength: 100 })
   @Transform(({ value }: { value: unknown }) => typeof value === 'string' ? value.trim() : value)
