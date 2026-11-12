@@ -1,18 +1,16 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { SideMenu } from "./SideMenu";
 import "./AppHeader.css";
 
-export function AppHeader() {
-  const { isAuthenticated } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+type Props = {
+  menuOpen: boolean;
+  onOpenMenu: () => void;
+  onCloseMenu: () => void;
+};
 
-  // Cerrar sesión se hace desde dentro del menú: sin esto, al volver a
-  // iniciar sesión el menú reaparecería abierto (quedó así la última vez).
-  useEffect(() => {
-    if (!isAuthenticated) setMenuOpen(false);
-  }, [isAuthenticated]);
+export function AppHeader({ menuOpen, onOpenMenu, onCloseMenu }: Props) {
+  const { isAuthenticated } = useAuth();
 
   return (
     <header className="app-header">
@@ -23,7 +21,7 @@ export function AppHeader() {
             className="menu-trigger"
             aria-label="Abrir menú"
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(true)}
+            onClick={onOpenMenu}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" />
@@ -35,7 +33,7 @@ export function AppHeader() {
           <span className="brand-name">WellQ</span>
         </Link>
       </div>
-      {isAuthenticated ? <SideMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} /> : null}
+      {isAuthenticated ? <SideMenu isOpen={menuOpen} onClose={onCloseMenu} /> : null}
     </header>
   );
 }
