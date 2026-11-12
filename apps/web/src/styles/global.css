@@ -55,6 +55,17 @@ button, input, select, textarea {
   }
 }
 
+/* En pantallas angostas el menú lateral se queda como overlay (no hay espacio
+   para "correr" el contenido); desde este ancho sí lo empuja y se recentra. */
+@media (min-width: 720px) {
+  .app-content {
+    transition: margin-left 0.25s ease;
+  }
+  .app-content.menu-open {
+    margin-left: min(280px, 85vw);
+  }
+}
+
 .container {
   width: 100%;
   max-width: 1280px;

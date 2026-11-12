@@ -13,6 +13,15 @@
   pointer-events: auto;
 }
 
+/* Desde este ancho el contenido se corre en vez de quedar tapado (ver
+   .app-content.menu-open en global.css): sin oscurecerlo, como un panel
+   fijo; el clic afuera sigue cerrando el menú. */
+@media (min-width: 720px) {
+  .side-menu-backdrop.open {
+    background: transparent;
+  }
+}
+
 .side-menu {
   position: fixed;
   top: 0;
@@ -64,6 +73,48 @@
 .side-menu-close:hover {
   background: var(--surface-sunken);
   color: var(--text);
+}
+
+.side-menu-identity {
+  margin: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  background: var(--surface-sunken);
+  flex: none;
+}
+
+.side-menu-identity-name {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 15px;
+}
+
+.side-menu-identity-meta {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.side-menu-identity-meta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.side-menu-identity-meta dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.side-menu-identity-meta dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--teal);
+  text-align: right;
 }
 
 .side-menu-nav {

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { tenantRoleLabels } from "../lib/validation";
+import { welcomeWord } from "../lib/greeting";
 import { ThemeToggle } from "./ThemeToggle";
 import "./SideMenu.css";
 
@@ -18,6 +20,15 @@ export function SideMenu({ isOpen, onClose }: Props) {
   const canSeePatients = role === "CLINIC_ADMIN" || role === "CLINICIAN";
   const canSeeAdminTools = role === "CLINIC_ADMIN";
   const isGlobalAdmin = session?.context === "GLOBAL";
+
+  const welcome = welcomeWord(session?.gender);
+  const greeting = session?.displayName
+    ? `${welcome}, ${session.displayName}`
+    : isGlobalAdmin
+      ? `${welcome}, administración global`
+      : `${welcome} a WellQ`;
+  const profileLabel = isGlobalAdmin ? "Superadmin" : role ? tenantRoleLabels[role] : "—";
+  const clinicLabel = session?.clinicName ?? (isGlobalAdmin ? "Todas las clínicas" : "—");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -39,6 +50,14 @@ export function SideMenu({ isOpen, onClose }: Props) {
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
+        </div>
+
+        <div className="side-menu-identity">
+          <p className="side-menu-identity-name">{greeting}</p>
+          <dl className="side-menu-identity-meta">
+            <div><dt>Perfil</dt><dd>{profileLabel}</dd></div>
+            <div><dt>Clínica</dt><dd>{clinicLabel}</dd></div>
+          </dl>
         </div>
 
         <nav className="side-menu-nav" onClick={onClose}>

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Carousel from "react-bootstrap/Carousel";
 import { useAuth } from "../context/AuthContext";
 import { tenantRoleLabels } from "../lib/validation";
+import { welcomeWord } from "../lib/greeting";
 import "./Welcome.css";
 
 const SLIDES = [
@@ -30,9 +31,6 @@ const SLIDES = [
     image: "/carousel/evaluacion.jpg",
   },
 ];
-
-const welcomeWord = (gender: "FEMALE" | "MALE" | "UNSPECIFIED" | undefined) =>
-  gender === "FEMALE" ? "Bienvenida" : gender === "MALE" ? "Bienvenido" : "Bienvenido/a";
 
 export function Welcome() {
   const { session } = useAuth();
@@ -63,9 +61,7 @@ export function Welcome() {
             ? "Crea cuentas de clínica desde aquí. Las fichas clínicas y la auditoría son privadas de cada clínica."
             : "Gestiona el historial documental de tus pacientes de forma segura y auditable."}
         </p>
-        {session?.role === "CLINIC_ADMIN" || session?.role === "CLINICIAN" ? (
-          <Link to="/pacientes" className="btn btn-primary">Ir a pacientes</Link>
-        ) : session?.context === "GLOBAL" ? (
+        {session?.context === "GLOBAL" ? (
           <Link to="/admin/crear-usuario" className="btn btn-primary">Crear usuario</Link>
         ) : null}
       </div>
