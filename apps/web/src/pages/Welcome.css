@@ -5,21 +5,11 @@
   gap: 32px;
 }
 
-.welcome-greeting h1 {
-  font-size: clamp(24px, 3.4vw, 32px);
-  font-weight: 650;
-  letter-spacing: -0.01em;
-}
-
-.welcome-clinic {
-  color: var(--teal);
-}
-
 .welcome-subtitle {
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 4px;
+  color: var(--text);
+  font-size: clamp(18px, 2.2vw, 22px);
+  font-weight: 650;
+  font-family: var(--font-display);
 }
 
 .welcome-greeting .btn { margin-top: 18px; }
