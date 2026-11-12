@@ -69,6 +69,27 @@ describe('UserMembersService.list/get', () => {
   });
 });
 
+describe('UserMembersService.listGlobal', () => {
+  const globalRow = (over: any = {}) => ({
+    ...row(), clinicId: 'clinicA', clinic: { id: 'clinicA', name: 'Clínica Vitalis' }, ...over,
+  });
+
+  it('includes the clinic name and id for each row, across all clinics by default', async () => {
+    const { prisma, service } = setup({ page: [globalRow()], total: 1 });
+    const page = await service.listGlobal({ limit: 50, offset: 0 } as any);
+    expect(page).toMatchObject({ total: 1, limit: 50, offset: 0 });
+    expect(page.items[0]).toMatchObject({ id: 'u1', clinicId: 'clinicA', clinicName: 'Clínica Vitalis', role: 'CLINICIAN' });
+    expect(prisma.userClinic.findMany.mock.calls[0][0].where).toEqual({});
+  });
+
+  it('filters by clinicId, role and status when provided', async () => {
+    const { prisma, service } = setup({ page: [], total: 0 });
+    await service.listGlobal({ limit: 50, offset: 0, clinicId: 'clinicB', role: ['CLINIC_ADMIN'], isActive: true } as any);
+    const where = prisma.userClinic.findMany.mock.calls[0][0].where;
+    expect(where).toEqual({ clinicId: 'clinicB', role: { in: ['CLINIC_ADMIN'] }, isActive: true });
+  });
+});
+
 describe('UserMembersService.update', () => {
   it('changes only what differs, audits with field names and role transition, and returns the member', async () => {
     const { tx, audit, service } = setup();

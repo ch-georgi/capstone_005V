@@ -13,6 +13,7 @@ import { Members } from "./pages/Members";
 import { MemberDetail } from "./pages/MemberDetail";
 import { SystemAdminCreateUser } from "./pages/SystemAdminCreateUser";
 import { CreateClinic } from "./pages/CreateClinic";
+import { GlobalMembers } from "./pages/GlobalMembers";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/profesionales/:userId" element={<ProtectedRoute><MemberDetail /></ProtectedRoute>} />
         <Route path="/admin/crear-usuario" element={<ProtectedRoute><SystemAdminCreateUser /></ProtectedRoute>} />
         <Route path="/admin/crear-clinica" element={<ProtectedRoute><CreateClinic /></ProtectedRoute>} />
+        <Route path="/admin/usuarios" element={<ProtectedRoute><GlobalMembers /></ProtectedRoute>} />
       </Routes>
     </>
   );

@@ -6,13 +6,19 @@ import { isTransient } from '../../common/http/transient-error';
 import { TenantContext } from '../../common/types/auth-context';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { ListMembersQueryDto, MemberDto, MemberPageDto, UpdateMemberDto } from './dto/member.dto';
+import { GlobalMemberDto, GlobalMemberPageDto, ListGlobalMembersQueryDto, ListMembersQueryDto, MemberDto, MemberPageDto, UpdateMemberDto } from './dto/member.dto';
 
 const memberInclude = {
   user: { select: { email: true, passwordHash: true, gender: true } },
   patient: { select: { id: true } },
 } satisfies Prisma.UserClinicInclude;
 type MemberRow = Prisma.UserClinicGetPayload<{ include: typeof memberInclude }>;
+
+const globalMemberInclude = {
+  ...memberInclude,
+  clinic: { select: { id: true, name: true } },
+} satisfies Prisma.UserClinicInclude;
+type GlobalMemberRow = Prisma.UserClinicGetPayload<{ include: typeof globalMemberInclude }>;
 
 const MAX_ATTEMPTS = 3;
 const TX_OPTIONS = { maxWait: 5_000, timeout: 10_000 } as const;
@@ -21,6 +27,10 @@ export const toMember = (row: MemberRow): MemberDto => ({
   id: row.userId, email: row.user.email ?? null, displayName: row.displayName, gender: row.user.gender, role: row.role, isActive: row.isActive,
   hasCredentials: !!row.user.passwordHash, patientId: row.patient?.id ?? null,
   createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
+});
+
+export const toGlobalMember = (row: GlobalMemberRow): GlobalMemberDto => ({
+  ...toMember(row), clinicId: row.clinicId, clinicName: row.clinic.name,
 });
 
 /** Gestión de los miembros de la clínica de la sesión (solo CLINIC_ADMIN). Las membresías se desactivan, nunca se eliminan. */
@@ -48,6 +58,27 @@ export class UserMembersService {
       }),
     ]);
     return { items: rows.map(toMember), total, limit: query.limit, offset: query.offset };
+  }
+
+  /** Vista del superadmin: todos los usuarios de todas las clínicas, con el nombre de su clínica. */
+  async listGlobal(query: ListGlobalMembersQueryDto): Promise<GlobalMemberPageDto> {
+    const where: Prisma.UserClinicWhereInput = {
+      ...(query.clinicId && { clinicId: query.clinicId }),
+      ...(query.role?.length && { role: { in: query.role } }),
+      ...(query.isActive !== undefined && { isActive: query.isActive }),
+      ...(query.q && { OR: [
+        { displayName: { contains: query.q, mode: 'insensitive' } },
+        { user: { email: { contains: query.q, mode: 'insensitive' } } },
+      ] }),
+    };
+    const [total, rows] = await Promise.all([
+      this.prisma.userClinic.count({ where }),
+      this.prisma.userClinic.findMany({
+        where, include: globalMemberInclude, take: query.limit, skip: query.offset,
+        orderBy: [{ clinic: { name: 'asc' } }, { displayName: 'asc' }, { userId: 'asc' }],
+      }),
+    ]);
+    return { items: rows.map(toGlobalMember), total, limit: query.limit, offset: query.offset };
   }
 
   async get(ctx: TenantContext, userId: string): Promise<MemberDto> {

@@ -157,6 +157,12 @@ export type UpdateMemberInput = { displayName?: string; gender?: Gender; role?: 
 export const updateMember = (token: string, userId: string, input: UpdateMemberInput) =>
   apiRequest<Member>(`/users/${userId}`, { method: "PATCH", body: input, token });
 
+// ---------- Usuarios de todas las clínicas (solo superadmin) ----------
+export type GlobalMember = Member & { clinicId: string; clinicName: string };
+export const listGlobalMembers = (token: string, p: {
+  clinicId?: string; role?: TenantRole | TenantRole[]; isActive?: boolean; q?: string; limit?: number; offset?: number;
+}) => apiRequest<Page<GlobalMember>>(`/clinics/users${qs({ ...p, isActive: p.isActive === undefined ? undefined : String(p.isActive) })}`, { token });
+
 // ---------- Exámenes ----------
 export type ExamType = { id: string; code: string; name: string };
 export const listExamTypes = (token: string) => apiRequest<{ items: ExamType[] }>("/exam-types", { token });
