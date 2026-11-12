@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import Carousel from "react-bootstrap/Carousel";
 import { useAuth } from "../context/AuthContext";
 import { tenantRoleLabels } from "../lib/validation";
-import { welcomeWord } from "../lib/greeting";
 import "./Welcome.css";
 
 const SLIDES = [
@@ -34,20 +33,10 @@ const SLIDES = [
 
 export function Welcome() {
   const { session } = useAuth();
-  const welcome = welcomeWord(session?.gender);
 
   return (
     <main className="welcome container">
       <div className="welcome-greeting">
-        <h1>
-          {session?.displayName ? (
-            <>{welcome}, <span className="welcome-clinic">{session.displayName}</span></>
-          ) : session?.context === "GLOBAL" ? (
-            `${welcome}, administración global`
-          ) : (
-            `${welcome} a WellQ`
-          )}
-        </h1>
         {session?.clinicName ? (
           <p className="welcome-subtitle">
             {session.clinicName}
