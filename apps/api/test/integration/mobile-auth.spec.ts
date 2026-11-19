@@ -133,6 +133,33 @@ describe("Mobile sessions, tenant selection and password recovery (PostgreSQL)",
       clinicId: clinicA,
     }).expect(401);
   });
+  it("serves the same patient profile to web JWTs without enabling mobile-only mutations", async () => {
+    const web = (await post("login", { email, password, clinicId: clinicA }).expect(200)).body.accessToken;
+    const mobile = (await login().expect(200)).body.session;
+    expect((await me(web).expect(200)).body).toEqual((await me(mobile.accessToken).expect(200)).body);
+    expect((await me(web)).body).toMatchObject({ patientId: null, access: "READ_ONLY", patientRecordPending: true });
+    await request(app.getHttpServer()).patch("/api/v1/auth/me").auth(web, { type: "bearer" }).send({ displayName: "Cambio web" }).expect(401);
+    await post("mobile/switch-clinic", { clinicId: clinicB }).auth(web, { type: "bearer" }).expect(401);
+    await post("logout", { refreshToken: mobile.refreshToken }).expect(204);
+    await me(mobile.accessToken).expect(401);
+    await me(web).expect(200);
+  });
+  it("includes historical clinics in web selection and derives patient access on the server", async () => {
+    const record = await db.patient.create({ data: {
+      userId, clinicId: clinicA, firstName: "Paciente", lastName: "Histórico", dateOfBirth: new Date("1990-01-01"),
+    } });
+    const activeOptions = (await post("clinics", { email, password }).expect(200)).body.clinics;
+    expect(activeOptions).toContainEqual(expect.objectContaining({ clinicId: clinicA, access: "READ_WRITE", patientRecordPending: false }));
+    await secondClinic();
+    await db.userClinic.updateMany({ where: { userId }, data: { isActive: false } });
+    const options = (await post("clinics", { email, password }).expect(200)).body.clinics;
+    expect(options).toEqual([expect.objectContaining({ clinicId: clinicA, access: "READ_ONLY", patientRecordPending: false })]);
+    const token = (await post("login", { email, password, clinicId: clinicA }).expect(200)).body.accessToken;
+    expect((await me(token).expect(200)).body).toMatchObject({ patientId: record.id, access: "READ_ONLY" });
+    await request(app.getHttpServer()).get(`/api/v1/patients/${record.id}/timeline`).auth(token, { type: "bearer" }).expect(403);
+    await db.userClinic.update({ where: { userId_clinicId: { userId, clinicId: clinicB } }, data: { role: "CLINICIAN" } });
+    expect((await post("clinics", { email, password }).expect(200)).body.clinics).toHaveLength(1);
+  });
   it("expires selection and rechecks membership before exchange", async () => {
     await secondClinic();
     const { body } = await login().expect(200);

@@ -127,6 +127,34 @@ describe('Exam upload and download API against disposable PostgreSQL', () => {
     await upload(foreign, envelope(PDF, { clinicId: clinicB }), PDF).expect(404);
   });
 
+  it('shares web uploads with mobile sessions, versions and historical read-only access', async () => {
+    const web = await login(userP1, clinicA);
+    const selection = (await request(app.getHttpServer()).post('/api/v1/auth/mobile/login')
+      .send({ email: email(userP1), password }).expect(200)).body.session;
+    const mobile = selection.accessToken;
+    const body = envelope(PDF);
+    const first = (await upload(web, body, PDF).expect(201)).body;
+    await upload(web, body, PDF).expect(200).expect(res => expect(res.body.replayed).toBe(true));
+    const mobileDetail = await request(app.getHttpServer()).get(`/api/v1/exams/${first.examId}`).auth(mobile, { type: 'bearer' }).expect(200);
+    expect(mobileDetail.body.latestVersion.id).toBe(first.versionId);
+    const second = (await upload(mobile, versionEnvelope(first.examId, PDF2), PDF2).expect(201)).body;
+    expect(((await get(web, first.examId, second.versionId, 'view').expect(200)).body as Buffer).equals(PDF2)).toBe(true);
+    const historicalVersion = await get(web, first.examId, first.versionId, 'download').expect(200);
+    expect((historicalVersion.body as Buffer).equals(PDF)).toBe(true);
+    await db.userClinic.update({ where: { userId_clinicId: { userId: userP1, clinicId: clinicA } }, data: { isActive: false } });
+    try {
+      await get(web, first.examId, second.versionId, 'download').expect(200);
+      await upload(web, versionEnvelope(first.examId, PDF), PDF).expect(403);
+      await request(app.getHttpServer()).get(`/api/v1/patients/${patient1}/exams`).auth(web, { type: 'bearer' }).expect(200);
+    } finally {
+      await db.userClinic.update({ where: { userId_clinicId: { userId: userP1, clinicId: clinicA } }, data: { isActive: true } });
+    }
+    const actions = await db.auditLog.findMany({ where: { examId: first.examId }, select: { action: true, examVersionId: true } });
+    expect(actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: 'CREATE' }), expect.objectContaining({ action: 'NEW_VERSION', examVersionId: second.versionId }),
+      expect.objectContaining({ action: 'VIEW', examVersionId: second.versionId }), expect.objectContaining({ action: 'DOWNLOAD', examVersionId: first.versionId }),
+    ]));
+  });
   it('rejects tampered or disallowed files and unauthenticated calls without storing anything', async () => {
     const admin = await login(adminA, clinicA);
     const before = storage.objects.size;

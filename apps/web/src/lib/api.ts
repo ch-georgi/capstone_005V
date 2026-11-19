@@ -16,6 +16,7 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   token?: string | null;
+  signal?: AbortSignal;
 };
 
 async function readError(response: Response): Promise<ApiError> {
@@ -30,19 +31,20 @@ async function readError(response: Response): Promise<ApiError> {
 export async function apiUpload<T>(path: string, form: FormData, token: string): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form });
+    response = await fetch(`${API_URL}${path}`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form, signal: AbortSignal.timeout(60_000) });
   } catch {
     throw new ApiError(0, "NETWORK_ERROR", "No se pudo conectar con el servidor. Revisa tu conexión.");
   }
   if (!response.ok) throw await readError(response);
-  return (await response.json()) as T;
+  try { return (await response.json()) as T; }
+  catch { throw new ApiError(0, "UNCERTAIN_UPLOAD", "No se pudo confirmar la carga. Reintenta con los mismos datos."); }
 }
 
 /** Descarga un archivo autenticado como Blob (el token va en el header, nunca en la URL). */
-export async function apiBlob(path: string, token: string): Promise<Blob> {
+export async function apiBlob(path: string, token: string, signal?: AbortSignal): Promise<Blob> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+    response = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` }, signal, cache: "no-store" });
   } catch {
     throw new ApiError(0, "NETWORK_ERROR", "No se pudo conectar con el servidor. Revisa tu conexión.");
   }
@@ -68,6 +70,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: options.signal,
+      cache: "no-store",
     });
   } catch {
     throw new ApiError(0, "NETWORK_ERROR", "No se pudo conectar con el servidor. Revisa tu conexión.");
@@ -87,7 +91,14 @@ export function login(input: LoginRequest) {
 }
 
 export type Gender = "FEMALE" | "MALE" | "UNSPECIFIED";
-export type ClinicOption = { clinicId: string; clinicName: string; role: TenantRole; displayName: string };
+export type Access = "READ_ONLY" | "READ_WRITE";
+export type ClinicOption = { clinicId: string; clinicName: string; role: TenantRole; displayName: string; access: Access; patientRecordPending: boolean };
+export type PatientProfile = {
+  patientId: string | null; user: { id: string; email: string }; clinic: { id: string; name: string };
+  displayName: string; role: "PATIENT"; access: Access; patientRecordPending: boolean;
+  clinics: { id: string; name: string; displayName: string; access: Access; patientRecordPending: boolean }[];
+};
+export const getPatientProfile = (token: string) => apiRequest<PatientProfile>("/auth/me", { token });
 export type VerifyClinicsResponse = { isSystemAdmin: boolean; gender: Gender; clinics: ClinicOption[] };
 
 /** Valida credenciales y devuelve las clínicas elegibles, sin emitir token. */
@@ -183,9 +194,18 @@ export const getTimeline = (token: string, patientId: string) =>
 
 export type ExamDetail = {
   id: string; patientId: string; title: string; examDate: string; professionalName: string | null; notes: string | null;
-  examType: ExamType; versionCount: number; versions: ExamVersion[];
+  examType: ExamType; versionCount: number; versions: DocumentVersion[]; latestVersion: DocumentVersion | null;
+  createdAt: string; updatedAt: string; createdBy: { id: string; displayName: string | null };
 };
-export const getExam = (token: string, examId: string) => apiRequest<ExamDetail>(`/exams/${examId}`, { token });
+/** El timeline clínico no incluye hash ni responsable; la API de exámenes sí. */
+export type DocumentVersion = Omit<ExamVersion, "sizeBytes" | "sha256" | "uploadedBy"> & {
+  sizeBytes: number; sha256: string; uploadedBy: { id: string; displayName: string | null };
+};
+export type ExamSummary = Omit<ExamDetail, "versions" | "createdBy">;
+export type ExamFilters = { examTypeId?: string; from?: string; to?: string; offset?: number; limit?: number };
+export const listPatientExams = (token: string, patientId: string, filters: ExamFilters, signal?: AbortSignal) =>
+  apiRequest<Page<ExamSummary>>(`/patients/${patientId}/exams${qs(filters)}`, { token, signal });
+export const getExam = (token: string, examId: string, signal?: AbortSignal) => apiRequest<ExamDetail>(`/exams/${examId}`, { token, signal });
 export const deleteExam = (token: string, examId: string) => apiRequest<void>(`/exams/${examId}`, { method: "DELETE", token });
 
 export type UploadResult = { examId: string; versionId: string; versionNumber: number; replayed: boolean };

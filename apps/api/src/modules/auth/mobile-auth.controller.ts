@@ -84,7 +84,7 @@ export class MobileAuthController {
   @ApiBearerAuth("bearer")
   @RequireAccess({ roles: [TenantRole.PATIENT] })
   @ApiOperation({
-    summary: "Perfil vigente de sesión móvil y clínicas autorizadas",
+    summary: "Perfil vigente de paciente web o móvil y clínicas autorizadas",
   })
   @ApiResponse({ status: 200, type: MobileProfileDto })
   me(@Req() req: AuthenticatedRequest) {

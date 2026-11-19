@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { TenantRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from './password.service';
 import { ContextService } from './context.service';
@@ -39,14 +40,23 @@ export class AuthService {
   async verifyClinics(input: VerifyClinicsDto): Promise<VerifyClinicsResponseDto> {
     const user = await this.verifyCredentials(input.email, input.password);
     const memberships = await this.prisma.userClinic.findMany({
-      where: { userId: user.id, isActive: true, clinic: { isActive: true } },
-      select: { clinicId: true, role: true, displayName: true, clinic: { select: { name: true } } },
+      where: { userId: user.id, OR: [
+        { isActive: true, clinic: { isActive: true } },
+        { role: TenantRole.PATIENT, patient: { isNot: null } },
+      ] },
+      select: { clinicId: true, role: true, displayName: true, isActive: true,
+        clinic: { select: { name: true, isActive: true } }, patient: { select: { deletedAt: true } } },
       orderBy: { clinic: { name: 'asc' } },
     });
     return {
       isSystemAdmin: user.isSystemAdmin,
       gender: user.gender,
-      clinics: memberships.map((m) => ({ clinicId: m.clinicId, clinicName: m.clinic.name, role: m.role, displayName: m.displayName })),
+      clinics: memberships.map((m) => ({
+        clinicId: m.clinicId, clinicName: m.clinic.name, role: m.role, displayName: m.displayName,
+        access: m.isActive && m.clinic.isActive && (m.role !== TenantRole.PATIENT || !!m.patient && !m.patient.deletedAt)
+          ? 'READ_WRITE' : 'READ_ONLY',
+        patientRecordPending: m.role === TenantRole.PATIENT && !m.patient,
+      })),
     };
   }
 }

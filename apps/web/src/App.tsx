@@ -16,6 +16,9 @@ import { MemberDetail } from "./pages/MemberDetail";
 import { SystemAdminCreateUser } from "./pages/SystemAdminCreateUser";
 import { CreateClinic } from "./pages/CreateClinic";
 import { GlobalMembers } from "./pages/GlobalMembers";
+import { PatientExamLayout } from "./components/PatientExamLayout";
+import { MyExams } from "./pages/MyExams";
+import { MyExamDetail } from "./pages/MyExamDetail";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -42,6 +45,11 @@ export default function App() {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Register />} />
+          <Route path="/mis-examenes" element={<PatientExamLayout />}>
+            <Route index element={<MyExams />} />
+            <Route path=":examId" element={<MyExamDetail key="detail" />} />
+            <Route path=":examId/versiones" element={<MyExamDetail key="versions" history />} />
+          </Route>
           <Route
             path="/crear-usuario"
             element={

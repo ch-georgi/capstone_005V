@@ -56,7 +56,7 @@ export function Login() {
     try {
       const result = await verifyClinics(values);
       if (result.clinics.length === 0 && !result.isSystemAdmin) {
-        setServerError("Tu cuenta no tiene clínicas activas asociadas. Contacta a tu administrador.");
+        setServerError("Tu cuenta no tiene clínicas disponibles. Contacta a tu administrador.");
         return;
       }
       if (result.clinics.length === 1 && !result.isSystemAdmin) {
@@ -150,6 +150,8 @@ export function Login() {
                     />
                     <span className="clinic-option-name">{c.clinicName}</span>
                     <span className="clinic-option-role">{tenantRoleLabels[c.role]}</span>
+                    {c.access === "READ_ONLY" ? <span>Solo lectura</span> : null}
+                    {c.patientRecordPending ? <span>Ficha pendiente</span> : null}
                   </label>
                 ))}
                 {isSystemAdmin ? (

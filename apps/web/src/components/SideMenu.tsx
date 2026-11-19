@@ -63,6 +63,7 @@ export function SideMenu({ isOpen, onClose }: Props) {
         </div>
 
         <nav className="side-menu-nav" onClick={onClose}>
+          {role === "PATIENT" ? <Link to="/mis-examenes">Mis exámenes</Link> : null}
           {canSeePatients ? <Link to="/pacientes">Pacientes</Link> : null}
           {canSeeAdminTools ? <Link to="/profesionales">Profesionales</Link> : null}
           {canSeeAdminTools ? <Link to="/auditoria">Auditoría</Link> : null}

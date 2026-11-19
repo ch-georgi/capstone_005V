@@ -48,11 +48,14 @@ export function Welcome() {
         <p className="welcome-lede">
           {session?.context === "GLOBAL"
             ? "Crea cuentas de clínica desde aquí. Las fichas clínicas y la auditoría son privadas de cada clínica."
-            : "Gestiona el historial documental de tus pacientes de forma segura y auditable."}
+            : session?.role === "PATIENT"
+              ? "Consulta tus exámenes, descarga documentos y agrega nuevos archivos de tu clínica."
+              : "Gestiona el historial documental de tus pacientes de forma segura y auditable."}
         </p>
         {session?.context === "GLOBAL" ? (
           <Link to="/admin/crear-usuario" className="btn btn-primary">Crear usuario</Link>
         ) : null}
+        {session?.role === "PATIENT" ? <Link to="/mis-examenes" className="btn btn-primary">Mis exámenes</Link> : null}
       </div>
 
       <Carousel className="welcome-carousel" indicators controls interval={6000}>

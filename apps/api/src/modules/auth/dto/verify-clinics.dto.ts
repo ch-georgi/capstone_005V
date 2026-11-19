@@ -17,6 +17,8 @@ export class ClinicOptionDto {
   @ApiProperty({ example: 'Clínica A' }) clinicName!: string;
   @ApiProperty({ enum: TenantRole, enumName: 'TenantRole' }) role!: TenantRole;
   @ApiProperty({ example: 'Dra. Ana Soto', description: 'Nombre de presentación de la membresía en esta clínica.' }) displayName!: string;
+  @ApiProperty({ enum: ['READ_ONLY', 'READ_WRITE'] }) access!: 'READ_ONLY' | 'READ_WRITE';
+  @ApiProperty() patientRecordPending!: boolean;
 }
 
 export class VerifyClinicsResponseDto {
@@ -26,6 +28,6 @@ export class VerifyClinicsResponseDto {
   @ApiProperty({ enum: Gender, enumName: 'Gender', description: 'Género de la cuenta, usado para personalizar saludos.' })
   gender!: Gender;
 
-  @ApiProperty({ type: [ClinicOptionDto], description: 'Clínicas activas donde esta cuenta tiene membresía activa.' })
+  @ApiProperty({ type: [ClinicOptionDto], description: 'Clínicas activas autorizadas y acceso histórico propio de pacientes.' })
   clinics!: ClinicOptionDto[];
 }

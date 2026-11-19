@@ -298,7 +298,9 @@ export class MobileAuthService {
     });
   }
   async me(claims: SessionClaims) {
-    if (claims.context !== "TENANT" || !claims.sid) throw denied();
+    // El perfil de lectura también admite el JWT web. ContextService sigue
+    // validando la sesión renovable cuando el token incluye sid.
+    if (claims.context !== "TENANT") throw denied();
     await this.contexts.resolve(claims);
     return this.profile(this.db, claims.sub, claims.clinicId);
   }

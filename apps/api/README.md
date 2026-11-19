@@ -7,6 +7,21 @@ clínicas, exámenes (listados), sync y trabajos siguen con `.gitkeep`.
 
 ## Preparar y arrancar
 
+### Compatibilidad con el módulo web de pacientes
+
+`GET /auth/me` acepta JWT del login web de pacientes, además de sesiones móviles,
+con el mismo perfil (`patientId`, `access`, `patientRecordPending` y clínicas).
+Cuando existe `sid`, sigue comprobándose su vigencia y revocación. Las operaciones
+móviles de edición de perfil, cambio de clínica y renovación conservan sus requisitos.
+`POST /auth/clinics` añade `access` y `patientRecordPending`, e incluye acceso
+histórico propio de pacientes; personal inactivo sigue excluido.
+
+No se ampliaron los permisos de `/patients/:patientId/timeline`. La web paciente
+usa la API de exámenes que verifica propiedad y clínica. No hay migraciones nuevas.
+Publicar API antes de web; ver [portal web](../web/README.md).
+
+### Arranque local
+
 Ejecutar desde la raíz con Node 22.13+ dentro de la versión 22. Primero seguir
 [DESARROLLO_LOCAL.md](../../DESARROLLO_LOCAL.md) para PostgreSQL y migraciones.
 Usar `migrate deploy`, no `db push`. La API utiliza el esquema vigente sin

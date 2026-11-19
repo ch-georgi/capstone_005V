@@ -23,7 +23,7 @@ export class AuthController {
   @Public()
   @Post('clinics')
   @HttpCode(200)
-  @ApiOperation({ operationId: 'verifyClinics', summary: 'Verificar credenciales y listar clínicas elegibles', description: 'Valida email y contraseña y devuelve las clínicas (nombre, no UUID) donde la cuenta tiene membresía activa en una clínica activa, más si corresponde sesión global de superadmin. No emite token: el frontend usa esto para armar el selector de clínica antes de llamar a /auth/login.' })
+  @ApiOperation({ operationId: 'verifyClinics', summary: 'Verificar credenciales y listar clínicas elegibles', description: 'Valida email y contraseña y devuelve las clínicas activas autorizadas y el acceso histórico propio de pacientes, más si corresponde sesión global de superadmin. No emite token: el frontend usa esto para armar el selector de clínica antes de llamar a /auth/login.' })
   @ApiResponse({ status: 200, type: VerifyClinicsResponseDto })
   @ApiResponse({ status: 400, type: ApiErrorDto, description: 'Datos inválidos.' })
   @ApiResponse({ status: 401, type: ApiErrorDto, description: 'INVALID_CREDENTIALS: email o contraseña incorrectos.' })

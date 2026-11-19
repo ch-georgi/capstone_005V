@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { login as apiLogin, type LoginRequest, type TenantRole, type Gender } from "../lib/api";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { getPatientProfile, login as apiLogin, type PatientProfile, type LoginRequest, type TenantRole, type Gender } from "../lib/api";
 
 type SessionContext = "GLOBAL" | "TENANT";
 
@@ -15,6 +15,7 @@ type Session = {
   displayName: string | null;
   role: TenantRole | null;
   gender: Gender;
+  patientProfile: PatientProfile | null;
 };
 
 type AuthContextValue = {
@@ -22,6 +23,8 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   login: (input: LoginRequest, profile?: LoginProfile) => Promise<void>;
   logout: () => void;
+  refreshPatientProfile: () => Promise<PatientProfile | null>;
+  setExitWarning: (message: string | null) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -44,28 +47,58 @@ function decodeJwtPayload(token: string): { sub?: string; context?: string; clin
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const current = useRef<Session | null>(null);
+  const generation = useRef(0);
+  const profileRequest = useRef(0);
+  const exitWarning = useRef<string | null>(null);
+  const setExitWarning = useCallback((message: string | null) => { exitWarning.current = message; }, []);
 
   const login = useCallback(async (input: LoginRequest, profile?: LoginProfile) => {
+    const attempt = ++generation.current;
     const response = await apiLogin(input);
     const claims = decodeJwtPayload(response.accessToken);
-    setSession({
+    const patientProfile = profile?.role === "PATIENT" ? await getPatientProfile(response.accessToken) : null;
+    if (attempt !== generation.current) return;
+    const next: Session = {
       accessToken: response.accessToken,
       expiresAt: Date.now() + response.expiresIn * 1000,
       context: claims.context === "GLOBAL" ? "GLOBAL" : "TENANT",
       clinicId: claims.clinicId ?? null,
-      clinicName: profile?.clinicName ?? null,
+      clinicName: patientProfile?.clinic.name ?? profile?.clinicName ?? null,
       userId: claims.sub ?? null,
-      displayName: profile?.displayName ?? null,
-      role: profile?.role ?? null,
+      displayName: patientProfile?.displayName ?? profile?.displayName ?? null,
+      role: patientProfile?.role ?? profile?.role ?? null,
       gender: profile?.gender ?? "UNSPECIFIED",
-    });
+      patientProfile,
+    };
+    current.current = next;
+    setSession(next);
   }, []);
 
-  const logout = useCallback(() => setSession(null), []);
+  const logout = useCallback(() => {
+    if (exitWarning.current && !window.confirm(exitWarning.current)) return;
+    generation.current++;
+    profileRequest.current++;
+    current.current = null;
+    setSession(null);
+  }, []);
+
+  const refreshPatientProfile = useCallback(async () => {
+    const active = current.current;
+    if (active?.role !== "PATIENT") return null;
+    const request = ++profileRequest.current;
+    const profile = await getPatientProfile(active.accessToken);
+    if (current.current?.accessToken !== active.accessToken || request !== profileRequest.current) return null;
+    const next = { ...current.current, patientProfile: profile, role: profile.role,
+      displayName: profile.displayName, clinicName: profile.clinic.name };
+    current.current = next;
+    setSession(next);
+    return profile;
+  }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ session, isAuthenticated: session !== null, login, logout }),
-    [session, login, logout],
+    () => ({ session, isAuthenticated: session !== null, login, logout, refreshPatientProfile, setExitWarning }),
+    [session, login, logout, refreshPatientProfile, setExitWarning],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
